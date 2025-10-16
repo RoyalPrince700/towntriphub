@@ -1,0 +1,54 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext.jsx';
+
+const Hero = () => {
+  const { user } = useAuth();
+
+  return (
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="text-center">
+        <h2 className="text-4xl font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
+          Welcome to <span className="text-indigo-600">TownTripHub</span>
+        </h2>
+        <p className="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
+          The Gambia's premier ride-booking platform connecting verified users and drivers.
+          Book rides, track trips, and enjoy safe, reliable transportation across the country.
+        </p>
+        <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
+          {user ? (
+            <div className="rounded-md shadow">
+              <Link 
+                to={user.role === 'driver' ? '/driver' : '/dashboard'}
+                className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 md:py-4 md:text-lg md:px-10 transition-colors duration-200"
+              >
+                Go to Dashboard
+              </Link>
+            </div>
+          ) : (
+            <>
+              <div className="rounded-md shadow">
+                <Link 
+                  to="/register"
+                  className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 md:py-4 md:text-lg md:px-10 transition-colors duration-200"
+                >
+                  Book a Ride
+                </Link>
+              </div>
+              <div className="mt-3 rounded-md shadow sm:mt-0 sm:ml-3">
+                <Link 
+                  to="/register"
+                  className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10 transition-colors duration-200"
+                >
+                  Become a Driver
+                </Link>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </main>
+  );
+};
+
+export default Hero;
