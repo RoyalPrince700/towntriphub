@@ -16,7 +16,7 @@ const CTA = () => {
         </p>
         {user ? (
           <Link 
-            to={user.role === 'driver' ? '/driver' : '/dashboard'}
+            to={'/dashboard'}
             className="mt-8 w-full inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50 sm:w-auto transition-colors duration-200"
           >
             Go to Dashboard

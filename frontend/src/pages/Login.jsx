@@ -17,7 +17,7 @@ export default function Login() {
     setLoading(true);
     try {
       await login(email, password);
-      navigate('/');
+      navigate('/dashboard');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -26,7 +26,8 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6">
+      <Link to="/" className="mb-4 text-2xl font-bold text-indigo-600 hover:text-indigo-700 transition-colors">TownTripHub</Link>
       <div className="w-full max-w-md bg-white shadow rounded-lg p-6">
         <h1 className="text-2xl font-semibold text-gray-900 mb-4">Sign in to your account</h1>
         {error && <div className="mb-3 text-red-600 text-sm">{error}</div>}

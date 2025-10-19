@@ -41,7 +41,8 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6">
+      <Link to="/" className="mb-4 text-2xl font-bold text-indigo-600 hover:text-indigo-700 transition-colors">TownTripHub</Link>
       <div className="w-full max-w-md bg-white shadow rounded-lg p-6">
         <h1 className="text-2xl font-semibold text-gray-900 mb-4">Create your account</h1>
         {message && <div className="mb-3 text-green-600 text-sm">{message}</div>}

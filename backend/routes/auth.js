@@ -1,12 +1,14 @@
 const express = require('express');
 const { body, query } = require('express-validator');
 const passport = require('../middleware/passport');
+const { protect } = require('../middleware/auth');
 const { signToken } = require('../utils/jwt');
 const {
   register,
   login,
   logout,
   verifyEmail,
+  getProfile,
   requestPasswordReset,
   resetPassword,
 } = require('../controllers/authController');
@@ -30,6 +32,8 @@ router.post(
 );
 
 router.post('/logout', logout);
+
+router.get('/profile', protect, getProfile);
 
 router.get('/verify-email', [query('token').isString()], verifyEmail);
 

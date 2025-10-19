@@ -11,11 +11,15 @@ const passport = require('./middleware/passport');
 
 // Import routes (to be created later)
 const authRoutes = require('./routes/auth');
+const bookingRoutes = require('./routes/booking');
+const reviewRoutes = require('./routes/review');
+const uploadRoutes = require('./routes/upload');
+const driverRoutes = require('./routes/driver');
+const logisticsRoutes = require('./routes/logistics');
+const adminRoutes = require('./routes/admin');
 // const userRoutes = require('./routes/users');
-// const driverRoutes = require('./routes/drivers');
 // const tripRoutes = require('./routes/trips');
 // const paymentRoutes = require('./routes/payments');
-// const adminRoutes = require('./routes/admin');
 
 // Import error handling middleware
 const { errorHandler, notFound } = require('./middleware/errorMiddleware');
@@ -106,6 +110,16 @@ app.use(passport.initialize());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// File upload middleware
+const fileUpload = require('express-fileupload');
+app.use(fileUpload({
+  useTempFiles: true,
+  tempFileDir: '/tmp/',
+  createParentPath: true,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max file size
+  abortOnLimit: true,
+}));
+
 // Compression middleware
 app.use(compression());
 
@@ -137,11 +151,15 @@ app.get('/api', (req, res) => {
 
 // Mount routes (to be uncommented as routes are created)
 app.use('/api/auth', authRoutes);
+app.use('/api/bookings', bookingRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/drivers', driverRoutes);
+app.use('/api/logistics', logisticsRoutes);
+app.use('/api/admin', adminRoutes);
 // app.use('/api/users', userRoutes);
-// app.use('/api/drivers', driverRoutes);
 // app.use('/api/trips', tripRoutes);
 // app.use('/api/payments', paymentRoutes);
-// app.use('/api/admin', adminRoutes);
 
 // Error handling middleware (must be last)
 app.use(notFound);

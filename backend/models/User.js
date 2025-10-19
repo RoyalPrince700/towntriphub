@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 const UserSchema = new mongoose.Schema(
   {
@@ -26,7 +27,7 @@ const UserSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['user', 'driver', 'admin'],
+      enum: ['user', 'driver', 'logistics', 'admin'],
       default: 'user',
     },
     isEmailVerified: {
@@ -78,6 +79,9 @@ UserSchema.methods.generatePasswordResetToken = function generatePasswordResetTo
 // Create a unique sparse index for googleId to allow multiple null values
 // This allows manual registration users (without googleId) to coexist
 UserSchema.index({ googleId: 1 }, { unique: true, sparse: true });
+
+// Apply pagination plugin
+UserSchema.plugin(mongoosePaginate);
 
 module.exports = mongoose.model('User', UserSchema);
 

@@ -64,6 +64,24 @@ export function AuthProvider({ children }) {
     saveAuth({ token: null, user: null });
   };
 
+  const refreshUser = async () => {
+    if (!token) return false;
+    try {
+      const res = await fetch(`${API_BASE}/auth/profile`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error('Failed to refresh user data');
+      const data = await res.json();
+      const updatedUser = { ...user, ...data.user };
+      setUser(updatedUser);
+      setStoredAuth({ token, user: updatedUser });
+      return true;
+    } catch (error) {
+      console.error('Failed to refresh user:', error);
+      return false;
+    }
+  };
+
   const oauthLogin = (token) => {
     try {
       const decoded = decodeJWT(token);
@@ -108,7 +126,7 @@ export function AuthProvider({ children }) {
 
 
   const value = useMemo(
-    () => ({ token, user, loading, login, register, logout, oauthLogin, requestPasswordReset, resetPassword }),
+    () => ({ token, user, loading, login, register, logout, refreshUser, oauthLogin, requestPasswordReset, resetPassword }),
     [token, user, loading]
   );
 

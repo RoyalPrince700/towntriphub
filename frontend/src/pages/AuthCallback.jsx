@@ -16,7 +16,7 @@ export default function AuthCallback() {
           // Use oauthLogin to properly set authentication state
           const success = oauthLogin(token);
           if (success) {
-            navigate('/');
+            navigate('/dashboard');
           } else {
             console.error('Failed to process OAuth token');
             navigate('/login');
