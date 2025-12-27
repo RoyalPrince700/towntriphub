@@ -51,6 +51,20 @@ export const getAvailableDrivers = async (params = {}) => {
   return response.data;
 };
 
+// Logistics Orders Management
+export const assignLogisticsPersonnel = async (bookingId, personnelId, price) => {
+  const response = await api.put(`/bookings/${bookingId}/assign-logistics`, {
+    personnelId,
+    price,
+  });
+  return response.data;
+};
+
+export const getAvailableLogisticsPersonnel = async () => {
+  const response = await api.get('/bookings/available-logistics');
+  return response.data;
+};
+
 // Driver Management
 export const getAllDrivers = async (params = {}) => {
   const response = await api.get('/drivers', { params });
@@ -111,6 +125,8 @@ export default {
   getAllBookings,
   assignDriver,
   getAvailableDrivers,
+  assignLogisticsPersonnel,
+  getAvailableLogisticsPersonnel,
   getAllDrivers,
   updateDriverApproval,
   updateDriverSuspension,

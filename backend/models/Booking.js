@@ -29,6 +29,13 @@ const BookingSchema = new mongoose.Schema(
         longitude: { type: Number },
       },
     },
+    passengers: {
+      type: Number,
+      default: 1,
+    },
+    scheduledTime: {
+      type: Date,
+    },
     // Delivery booking fields
     packageDetails: {
       description: { type: String },
@@ -59,6 +66,10 @@ const BookingSchema = new mongoose.Schema(
     driver: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Driver',
+    },
+    logisticsPersonnel: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'LogisticsPersonnel',
     },
     price: {
       amount: { type: Number },

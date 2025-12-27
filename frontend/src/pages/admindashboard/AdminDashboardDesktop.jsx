@@ -6,6 +6,7 @@ import AdminOverview from './AdminOverview';
 import BookingManagement from './BookingManagement';
 import DriverManagement from './DriverManagement';
 import LogisticsManagement from './LogisticsManagement';
+import LogisticsPersonnelManagement from './LogisticsPersonnelManagement';
 import UserManagement from './UserManagement';
 import Analytics from './Analytics';
 import SystemSettings from './SystemSettings';
@@ -25,6 +26,8 @@ const AdminDashboardDesktop = () => {
         return <DriverManagement />;
       case 'logistics':
         return <LogisticsManagement />;
+      case 'logistics-personnel':
+        return <LogisticsPersonnelManagement />;
       case 'users':
         return <UserManagement />;
       case 'analytics':

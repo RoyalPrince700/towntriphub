@@ -42,6 +42,10 @@ const UserSchema = new mongoose.Schema(
       sparse: true,
     },
     avatarUrl: String,
+    phoneNumber: {
+      type: String,
+      trim: true,
+    },
   },
   { timestamps: true }
 );

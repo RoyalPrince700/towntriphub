@@ -1,5 +1,7 @@
 const asyncHandler = require('express-async-handler');
 const { validationResult } = require('express-validator');
+const { cloudinary } = require('../config/cloudinary');
+const fs = require('fs');
 const LogisticsPersonnel = require('../models/LogisticsPersonnel');
 const User = require('../models/User');
 const Booking = require('../models/Booking');
@@ -13,8 +15,35 @@ function buildValidationError(res, errors) {
 // @route   POST /api/logistics/register
 // @access  Private (User)
 const registerLogisticsPersonnel = asyncHandler(async (req, res) => {
+  console.log('[LogisticsRegister] Registration attempt for user:', req.user.id);
+  console.log('[LogisticsRegister] Body:', JSON.stringify(req.body, null, 2));
+
+  // Parse JSON fields if they are strings (when coming from FormData)
+  if (typeof req.body.businessAddress === 'string') {
+    try {
+      req.body.businessAddress = JSON.parse(req.body.businessAddress);
+    } catch (e) {
+      console.error('[LogisticsRegister] Error parsing businessAddress:', e);
+    }
+  }
+  if (typeof req.body.serviceAreas === 'string') {
+    try {
+      req.body.serviceAreas = JSON.parse(req.body.serviceAreas);
+    } catch (e) {
+      console.error('[LogisticsRegister] Error parsing serviceAreas:', e);
+    }
+  }
+  if (typeof req.body.emergencyContact === 'string') {
+    try {
+      req.body.emergencyContact = JSON.parse(req.body.emergencyContact);
+    } catch (e) {
+      console.error('[LogisticsRegister] Error parsing emergencyContact:', e);
+    }
+  }
+
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.warn('[LogisticsRegister] Validation errors:', errors.array());
     return buildValidationError(res, errors);
   }
 
@@ -35,16 +64,36 @@ const registerLogisticsPersonnel = asyncHandler(async (req, res) => {
   }
 
   // Handle file uploads
-  let documents = {};
+  const documents = {};
   if (req.files) {
+    const uploadToCloudinary = async (file, type) => {
+      const result = await cloudinary.uploader.upload(file.tempFilePath, {
+        folder: 'towntriphub/documents',
+        public_id: `logistics_${req.user.id}_${type}_${Date.now()}`,
+      });
+      if (fs.existsSync(file.tempFilePath)) {
+        fs.unlinkSync(file.tempFilePath);
+      }
+      return result.secure_url;
+    };
+
     if (req.files.passportPhoto) {
-      documents.profilePhoto = req.files.passportPhoto.tempFilePath;
+      documents.profilePhoto = await uploadToCloudinary(req.files.passportPhoto, 'profile');
     }
     if (req.files.idCard) {
-      documents.businessLicense = req.files.idCard.tempFilePath; // Using businessLicense field for ID card
+      documents.businessLicense = await uploadToCloudinary(req.files.idCard, 'id_card');
     }
     if (req.files.driverLicense) {
-      documents.vehicleRegistration = req.files.driverLicense.tempFilePath; // Using vehicleRegistration field for driver license
+      documents.vehicleRegistration = await uploadToCloudinary(req.files.driverLicense, 'license');
+    }
+    if (req.files.vehicleFrontPhoto) {
+      documents.vehicleFrontPhoto = await uploadToCloudinary(req.files.vehicleFrontPhoto, 'vehicle_front');
+    }
+    if (req.files.vehicleSidePhoto) {
+      documents.vehicleSidePhoto = await uploadToCloudinary(req.files.vehicleSidePhoto, 'vehicle_side');
+    }
+    if (req.files.vehicleBackPhoto) {
+      documents.vehicleBackPhoto = await uploadToCloudinary(req.files.vehicleBackPhoto, 'vehicle_back');
     }
   }
 
@@ -54,10 +103,10 @@ const registerLogisticsPersonnel = asyncHandler(async (req, res) => {
     dateOfBirth,
     phoneNumber,
     emergencyContact,
-    businessName: businessName || dispatchName, // Use dispatchName as businessName if businessName not provided
+    businessName: businessName || dispatchName,
     businessType: 'individual',
     serviceAreas: serviceAreas || [],
-    services: ['local_delivery'], // Default service
+    services: ['local_delivery'],
     businessAddress,
     operatingHours: {
       start: '08:00',
@@ -205,7 +254,11 @@ const getAssignments = asyncHandler(async (req, res) => {
   const query = { driver: personnel._id };
 
   if (status) {
-    query.status = status;
+    if (status.includes(',')) {
+      query.status = { $in: status.split(',') };
+    } else {
+      query.status = status;
+    }
   }
 
   const options = {
@@ -215,7 +268,7 @@ const getAssignments = asyncHandler(async (req, res) => {
     populate: [
       {
         path: 'user',
-        select: 'name email avatarUrl',
+        select: 'name email avatarUrl phoneNumber',
       },
     ],
   };
@@ -480,9 +533,15 @@ const updateApproval = asyncHandler(async (req, res) => {
     personnel.approvedBy = req.user.id;
     personnel.approvedAt = new Date();
     personnel.availabilityStatus = 'offline'; // Start as offline, personnel can change later
+
+    // Update user's role to 'logistics' when approved
+    await User.findByIdAndUpdate(personnel.user, { role: 'logistics' });
   } else if (action === 'reject') {
     personnel.status = 'rejected';
     personnel.rejectionReason = reason;
+
+    // Optional: Reset user's role to 'user' if rejected
+    await User.findByIdAndUpdate(personnel.user, { role: 'user' });
   } else {
     return res.status(400).json({ message: 'Invalid action' });
   }

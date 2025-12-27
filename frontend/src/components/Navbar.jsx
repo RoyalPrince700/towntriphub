@@ -31,7 +31,14 @@ const Navbar = () => {
             </a>
             {user ? (
               <div className="flex items-center space-x-4">
-                <span className="text-gray-700">Welcome, {user.name}</span>
+                <div className="flex items-center space-x-2">
+                  <span className="text-gray-700 font-medium">Welcome, {user.name}</span>
+                  {user.role === 'driver' && (
+                    <span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                      Driver
+                    </span>
+                  )}
+                </div>
                 <Link
                   to={'/dashboard'}
                   className="text-indigo-600 hover:text-indigo-700 px-3 py-2 text-sm font-medium"
@@ -92,7 +99,14 @@ const Navbar = () => {
             </a>
             {user ? (
               <div className="mt-2 border-t border-gray-200 pt-2">
-                <div className="px-3 py-2 text-sm text-gray-600">Welcome, {user.name}</div>
+                <div className="px-3 py-2 flex items-center space-x-2">
+                  <span className="text-sm text-gray-600">Welcome, {user.name}</span>
+                  {user.role === 'driver' && (
+                    <span className="bg-green-100 text-green-800 text-[10px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                      Driver
+                    </span>
+                  )}
+                </div>
                 <Link
                   to={'/dashboard'}
                   onClick={() => setIsMobileOpen(false)}

@@ -9,34 +9,68 @@ import DeliveryBookingFlow from './userdashboard/DeliveryBookingFlow';
 import Profile from './userdashboard/Profile';
 import BookingHistory from './userdashboard/BookingHistory';
 import { Settings } from 'lucide-react';
+import { getBookingStats, getUserBookings } from '../services/bookingService';
+import { getDriverProfile } from '../services/driverService';
+import { getLogisticsProfile } from '../services/logisticsService';
 
 export default function UserDashboardDesktop() {
-  const { user, logout } = useAuth();
+  const { user, token, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
   const [activeService, setActiveService] = useState('ride');
   const [stats, setStats] = useState(null);
+  const [recentBookings, setRecentBookings] = useState([]);
+  const [driverProfile, setDriverProfile] = useState(null);
+  const [logisticsProfile, setLogisticsProfile] = useState(null);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
     fetchUserStats();
+    fetchRecentBookings();
+    fetchDriverStatus();
+    fetchLogisticsStatus();
   }, []);
 
   const fetchUserStats = async () => {
     try {
-      // TODO: Replace with actual API call
-      // const response = await api.get('/bookings/stats');
-
-      // Mock stats for now
-      setStats({
-        totalBookings: 24,
-        completedBookings: 22,
-        cancelledBookings: 2,
-        totalSpent: 1850,
-        completionRate: 92,
-        rideBookings: 18,
-        deliveryBookings: 6
-      });
+      const response = await getBookingStats();
+      if (response.success) {
+        setStats(response.data);
+      }
     } catch (error) {
       console.error('Failed to fetch user stats:', error);
+    }
+  };
+
+  const fetchRecentBookings = async () => {
+    try {
+      const response = await getUserBookings({ limit: 5 });
+      if (response.success) {
+        setRecentBookings(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch recent bookings:', error);
+    }
+  };
+
+  const fetchDriverStatus = async () => {
+    try {
+      const response = await getDriverProfile(token);
+      if (response.success) {
+        setDriverProfile(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch driver status:', error);
+    }
+  };
+
+  const fetchLogisticsStatus = async () => {
+    try {
+      const response = await getLogisticsProfile(token);
+      if (response.success) {
+        setLogisticsProfile(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch logistics status:', error);
     }
   };
 
@@ -55,13 +89,24 @@ export default function UserDashboardDesktop() {
           activeService={activeService}
           setActiveService={setActiveService}
           isMobile={false}
+          isCollapsed={isCollapsed}
+          setIsCollapsed={setIsCollapsed}
         />
       </div>
 
       {/* Main Content - Scrollable area */}
-      <div className="ml-80 mt-16 min-h-screen">
+      <div className={`mt-16 min-h-screen transition-all duration-300 ease-in-out ${
+        isCollapsed ? 'ml-16' : 'ml-80'
+      }`}>
         <div className="p-6 overflow-y-auto h-full">
-          {activeTab === 'overview' && <Overview stats={stats} />}
+          {activeTab === 'overview' && (
+            <Overview 
+              stats={stats} 
+              recentBookings={recentBookings} 
+              driverProfile={driverProfile}
+              logisticsProfile={logisticsProfile}
+            />
+          )}
 
           {activeTab === 'ride' && <RideBookingFlow user={user} />}
 

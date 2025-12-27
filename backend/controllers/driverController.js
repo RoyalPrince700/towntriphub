@@ -1,5 +1,7 @@
 const asyncHandler = require('express-async-handler');
 const { validationResult } = require('express-validator');
+const { cloudinary } = require('../config/cloudinary');
+const fs = require('fs');
 const Driver = require('../models/Driver');
 const User = require('../models/User');
 const Booking = require('../models/Booking');
@@ -15,8 +17,29 @@ function buildValidationError(res, errors) {
 const registerDriver = asyncHandler(async (req, res) => {
   console.log('=== DRIVER REGISTRATION BACKEND ===');
   console.log('User ID:', req.user?.id);
-  console.log('Request Body:', JSON.stringify(req.body, null, 2));
   
+  // Parse JSON fields if they are strings (when coming from FormData)
+  if (typeof req.body.vehicle === 'string') {
+    try {
+      req.body.vehicle = JSON.parse(req.body.vehicle);
+    } catch (e) {}
+  }
+  if (typeof req.body.preferences === 'string') {
+    try {
+      req.body.preferences = JSON.parse(req.body.preferences);
+    } catch (e) {}
+  }
+  if (typeof req.body.serviceAreas === 'string') {
+    try {
+      req.body.serviceAreas = JSON.parse(req.body.serviceAreas);
+    } catch (e) {}
+  }
+  if (typeof req.body.emergencyContact === 'string') {
+    try {
+      req.body.emergencyContact = JSON.parse(req.body.emergencyContact);
+    } catch (e) {}
+  }
+
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     console.error('Validation Errors:', JSON.stringify(errors.array(), null, 2));
@@ -55,6 +78,31 @@ const registerDriver = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: 'Vehicle plate number is already registered' });
   }
 
+  // Handle file uploads
+  const documents = {};
+  if (req.files) {
+    const uploadToCloudinary = async (file, type) => {
+      const result = await cloudinary.uploader.upload(file.tempFilePath, {
+        folder: 'towntriphub/documents',
+        public_id: `driver_${req.user.id}_${type}_${Date.now()}`,
+      });
+      if (fs.existsSync(file.tempFilePath)) {
+        fs.unlinkSync(file.tempFilePath);
+      }
+      return result.secure_url;
+    };
+
+    if (req.files.vehicleFrontPhoto) {
+      documents.vehicleFrontPhoto = await uploadToCloudinary(req.files.vehicleFrontPhoto, 'vehicle_front');
+    }
+    if (req.files.vehicleSidePhoto) {
+      documents.vehicleSidePhoto = await uploadToCloudinary(req.files.vehicleSidePhoto, 'vehicle_side');
+    }
+    if (req.files.vehicleBackPhoto) {
+      documents.vehicleBackPhoto = await uploadToCloudinary(req.files.vehicleBackPhoto, 'vehicle_back');
+    }
+  }
+
   // Create driver profile
   console.log('Creating driver profile...');
   const driver = await Driver.create({
@@ -66,11 +114,14 @@ const registerDriver = asyncHandler(async (req, res) => {
     emergencyContact,
     vehicle: {
       ...vehicle,
+      year: parseInt(vehicle.year, 10),
+      seatingCapacity: parseInt(vehicle.seatingCapacity, 10),
       plateNumber: vehicle.plateNumber.toUpperCase(),
       registrationNumber: vehicle.registrationNumber.toUpperCase(),
     },
     serviceAreas: serviceAreas || [],
     preferences: preferences || {},
+    documents,
     status: 'pending_approval',
   });
 
@@ -249,10 +300,20 @@ const updateVehicleInfo = asyncHandler(async (req, res) => {
 const getDriverAssignments = asyncHandler(async (req, res) => {
   const { status, page = 1, limit = 10 } = req.query;
 
-  const query = { driver: req.user.driverId || (await Driver.findOne({ user: req.user.id }))._id };
+  const driver = await Driver.findOne({ user: req.user.id });
+  if (!driver) {
+    return res.status(404).json({ message: 'Driver profile not found' });
+  }
+
+  const query = { driver: driver._id };
 
   if (status) {
-    query.status = status;
+    // If multiple statuses are provided (comma-separated), use $in
+    if (status.includes(',')) {
+      query.status = { $in: status.split(',') };
+    } else {
+      query.status = status;
+    }
   }
 
   const options = {
@@ -262,7 +323,7 @@ const getDriverAssignments = asyncHandler(async (req, res) => {
     populate: [
       {
         path: 'user',
-        select: 'name email avatarUrl',
+        select: 'name email avatarUrl phoneNumber',
       },
     ],
   };
@@ -535,9 +596,15 @@ const updateDriverApproval = asyncHandler(async (req, res) => {
     driver.approvedBy = req.user.id;
     driver.approvedAt = new Date();
     driver.availabilityStatus = 'offline'; // Start as offline, driver can change later
+
+    // Update user's role to 'driver' when approved
+    await User.findByIdAndUpdate(driver.user, { role: 'driver' });
   } else if (action === 'reject') {
     driver.status = 'rejected';
     driver.rejectionReason = reason;
+
+    // Optional: Reset user's role to 'user' if rejected
+    await User.findByIdAndUpdate(driver.user, { role: 'user' });
   } else {
     return res.status(400).json({ message: 'Invalid action' });
   }
@@ -568,10 +635,12 @@ const updateDriverSuspension = asyncHandler(async (req, res) => {
     driver.suspendedAt = new Date();
     driver.suspensionReason = reason;
     driver.availabilityStatus = 'offline';
+    // Keep role as 'driver' even when suspended - they can still access driver features
   } else if (action === 'reactivate') {
-    driver.status = 'active';
+    driver.status = 'approved';
     driver.suspendedAt = null;
     driver.suspensionReason = null;
+    // Keep role as 'driver' - already set during approval
   } else {
     return res.status(400).json({ message: 'Invalid action' });
   }

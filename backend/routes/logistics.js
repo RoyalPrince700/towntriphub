@@ -23,12 +23,20 @@ router.use(protect);
 // Logistics personnel registration
 router.post(
   '/register',
+  (req, res, next) => {
+    ['businessAddress', 'serviceAreas', 'emergencyContact'].forEach(field => {
+      if (typeof req.body[field] === 'string') {
+        try { req.body[field] = JSON.parse(req.body[field]); } catch (e) {}
+      }
+    });
+    next();
+  },
   [
     body('dispatchName').optional().isLength({ min: 2 }).withMessage('Dispatch name must be at least 2 characters'),
     body('dateOfBirth').isISO8601().withMessage('Valid date of birth is required'),
-    body('phoneNumber').isMobilePhone().withMessage('Valid phone number is required'),
+    body('phoneNumber').matches(/^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/).withMessage('Valid phone number is required'),
     body('emergencyContact.name').isLength({ min: 2 }).withMessage('Emergency contact name is required'),
-    body('emergencyContact.phone').isMobilePhone().withMessage('Valid emergency contact phone is required'),
+    body('emergencyContact.phone').matches(/^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/).withMessage('Valid emergency contact phone is required'),
     body('emergencyContact.relationship').isLength({ min: 2 }).withMessage('Emergency contact relationship is required'),
     body('businessName').optional().isLength({ min: 2 }).withMessage('Business name must be at least 2 characters'),
     body('businessAddress.address').isLength({ min: 5 }).withMessage('Business address is required'),
@@ -44,9 +52,9 @@ router.get('/profile', getLogisticsProfile);
 router.put(
   '/profile',
   [
-    body('phoneNumber').optional().isMobilePhone().withMessage('Valid phone number is required'),
+    body('phoneNumber').optional().matches(/^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/).withMessage('Valid phone number is required'),
     body('emergencyContact.name').optional().isLength({ min: 2 }).withMessage('Emergency contact name must be at least 2 characters'),
-    body('emergencyContact.phone').optional().isMobilePhone().withMessage('Valid emergency contact phone is required'),
+    body('emergencyContact.phone').optional().matches(/^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/).withMessage('Valid emergency contact phone is required'),
     body('emergencyContact.relationship').optional().isLength({ min: 2 }).withMessage('Emergency contact relationship must be at least 2 characters'),
     body('serviceAreas').optional().isArray().withMessage('Service areas must be an array'),
     body('serviceAreas.*').optional().isString().withMessage('Service areas must be strings'),

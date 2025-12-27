@@ -24,6 +24,14 @@ router.use(protect);
 // Driver registration
 router.post(
   '/register',
+  (req, res, next) => {
+    ['vehicle', 'preferences', 'serviceAreas', 'emergencyContact'].forEach(field => {
+      if (typeof req.body[field] === 'string') {
+        try { req.body[field] = JSON.parse(req.body[field]); } catch (e) {}
+      }
+    });
+    next();
+  },
   [
     body('dateOfBirth').isISO8601().withMessage('Valid date of birth is required'),
     body('licenseNumber').isLength({ min: 5, max: 20 }).withMessage('License number must be 5-20 characters'),

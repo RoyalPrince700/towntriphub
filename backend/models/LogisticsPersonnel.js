@@ -139,6 +139,9 @@ const LogisticsPersonnelSchema = new mongoose.Schema(
       taxCertificate: { type: String },
       insuranceDocument: { type: String },
       vehicleRegistration: { type: String }, // if applicable
+      vehicleFrontPhoto: { type: String },
+      vehicleSidePhoto: { type: String },
+      vehicleBackPhoto: { type: String },
       profilePhoto: { type: String },
       businessPhoto: { type: String },
     },

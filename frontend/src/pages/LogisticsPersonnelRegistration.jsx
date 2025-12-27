@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 
 const LogisticsPersonnelRegistration = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -44,10 +44,15 @@ const LogisticsPersonnelRegistration = () => {
       passportPhoto: null,
       idCard: null,
       driverLicense: null,
+      vehicleFrontPhoto: null,
+      vehicleSidePhoto: null,
+      vehicleBackPhoto: null,
     },
   });
 
   const [errors, setErrors] = useState({});
+
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -175,6 +180,15 @@ const LogisticsPersonnelRegistration = () => {
         if (!formData.documents.driverLicense) {
           newErrors['documents.driverLicense'] = 'Driver license is required';
         }
+        if (!formData.documents.vehicleFrontPhoto) {
+          newErrors['documents.vehicleFrontPhoto'] = 'Front view photo is required';
+        }
+        if (!formData.documents.vehicleSidePhoto) {
+          newErrors['documents.vehicleSidePhoto'] = 'Side view photo is required';
+        }
+        if (!formData.documents.vehicleBackPhoto) {
+          newErrors['documents.vehicleBackPhoto'] = 'Back view photo is required';
+        }
         break;
 
       default:
@@ -215,24 +229,30 @@ const LogisticsPersonnelRegistration = () => {
               submitData.append(docKey, formData.documents[docKey]);
             }
           });
-        } else if (typeof formData[key] === 'object' && !Array.isArray(formData[key])) {
+        } else if (typeof formData[key] === 'object') {
+          // Stringify objects and arrays for FormData
           submitData.append(key, JSON.stringify(formData[key]));
         } else {
           submitData.append(key, formData[key]);
         }
       });
 
-      const response = await fetch('/api/logistics/register', {
+      const response = await fetch(`${API_URL}/logistics/register`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: submitData,
       });
 
       const data = await response.json();
+      console.log('[LogisticsRegistration] Response:', { status: response.status, data });
 
       if (!response.ok) {
+        if (data.errors && Array.isArray(data.errors)) {
+          const errorMessages = data.errors.map(err => `${err.path || err.param}: ${err.msg}`).join(', ');
+          throw new Error(errorMessages || 'Validation failed');
+        }
         throw new Error(data.message || 'Registration failed');
       }
 
@@ -600,6 +620,80 @@ const LogisticsPersonnelRegistration = () => {
                       <p className="mt-1 text-sm text-red-600">{errors['documents.driverLicense']}</p>
                     )}
                   </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Vehicle Front View *
+                      </label>
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-green-400 transition-colors">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleFileChange('vehicleFrontPhoto', e.target.files[0])}
+                          className="hidden"
+                          id="vehicleFrontPhoto"
+                        />
+                        <label htmlFor="vehicleFrontPhoto" className="cursor-pointer">
+                          <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-xs text-gray-600 truncate">
+                            {formData.documents.vehicleFrontPhoto ? formData.documents.vehicleFrontPhoto.name : 'Upload Front'}
+                          </p>
+                        </label>
+                      </div>
+                      {errors['documents.vehicleFrontPhoto'] && (
+                        <p className="mt-1 text-sm text-red-600">{errors['documents.vehicleFrontPhoto']}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Vehicle Side View *
+                      </label>
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-green-400 transition-colors">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleFileChange('vehicleSidePhoto', e.target.files[0])}
+                          className="hidden"
+                          id="vehicleSidePhoto"
+                        />
+                        <label htmlFor="vehicleSidePhoto" className="cursor-pointer">
+                          <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-xs text-gray-600 truncate">
+                            {formData.documents.vehicleSidePhoto ? formData.documents.vehicleSidePhoto.name : 'Upload Side'}
+                          </p>
+                        </label>
+                      </div>
+                      {errors['documents.vehicleSidePhoto'] && (
+                        <p className="mt-1 text-sm text-red-600">{errors['documents.vehicleSidePhoto']}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Vehicle Back View *
+                      </label>
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-green-400 transition-colors">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleFileChange('vehicleBackPhoto', e.target.files[0])}
+                          className="hidden"
+                          id="vehicleBackPhoto"
+                        />
+                        <label htmlFor="vehicleBackPhoto" className="cursor-pointer">
+                          <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-xs text-gray-600 truncate">
+                            {formData.documents.vehicleBackPhoto ? formData.documents.vehicleBackPhoto.name : 'Upload Back'}
+                          </p>
+                        </label>
+                      </div>
+                      {errors['documents.vehicleBackPhoto'] && (
+                        <p className="mt-1 text-sm text-red-600">{errors['documents.vehicleBackPhoto']}</p>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -632,9 +726,12 @@ const LogisticsPersonnelRegistration = () => {
                   <div className="bg-gray-50 rounded-lg p-4">
                     <h4 className="font-medium text-gray-900 mb-3">Documents</h4>
                     <div className="text-sm">
-                      <div className="mb-2"><span className="text-gray-600">Passport Photo:</span> {formData.documents.passportPhoto?.name || 'Not uploaded'}</div>
-                      <div className="mb-2"><span className="text-gray-600">ID Card:</span> {formData.documents.idCard?.name || 'Not uploaded'}</div>
-                      <div><span className="text-gray-600">Driver License:</span> {formData.documents.driverLicense?.name || 'Not uploaded'}</div>
+                      <div className="mb-2"><span className="text-gray-600">Passport Photo:</span> {formData.documents.passportPhoto?.name || 'Uploaded'}</div>
+                      <div className="mb-2"><span className="text-gray-600">ID Card:</span> {formData.documents.idCard?.name || 'Uploaded'}</div>
+                      <div className="mb-2"><span className="text-gray-600">Driver License:</span> {formData.documents.driverLicense?.name || 'Uploaded'}</div>
+                      <div className="mb-2"><span className="text-gray-600">Vehicle Front:</span> {formData.documents.vehicleFrontPhoto?.name || 'Uploaded'}</div>
+                      <div className="mb-2"><span className="text-gray-600">Vehicle Side:</span> {formData.documents.vehicleSidePhoto?.name || 'Uploaded'}</div>
+                      <div><span className="text-gray-600">Vehicle Back:</span> {formData.documents.vehicleBackPhoto?.name || 'Uploaded'}</div>
                     </div>
                   </div>
                 </div>

@@ -206,8 +206,73 @@ const uploadBookingAttachment = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Upload document (for driver registration, etc.)
+// @route   POST /api/upload/document
+// @access  Private (User)
+const uploadDocument = asyncHandler(async (req, res) => {
+  if (!isConfigured) {
+    return res.status(503).json({
+      message: 'File upload service is not configured',
+    });
+  }
+
+  if (!req.files || !req.files.document) {
+    return res.status(400).json({ message: 'No document file provided' });
+  }
+
+  const file = req.files.document;
+  const { type } = req.body; // 'license', 'registration', 'vehicle_front', etc.
+
+  // Validate file type
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'];
+  if (!allowedTypes.includes(file.mimetype)) {
+    return res.status(400).json({
+      message: 'Invalid file type. Only JPEG, PNG, WebP, and PDF are allowed',
+    });
+  }
+
+  // Validate file size (max 5MB)
+  const maxSize = 5 * 1024 * 1024;
+  if (file.size > maxSize) {
+    return res.status(400).json({
+      message: 'File too large. Maximum size is 5MB',
+    });
+  }
+
+  try {
+    const result = await cloudinary.uploader.upload(file.tempFilePath, {
+      folder: 'towntriphub/documents',
+      public_id: `doc_${req.user.id}_${type}_${Date.now()}`,
+      resource_type: file.mimetype === 'application/pdf' ? 'raw' : 'image',
+    });
+
+    if (fs.existsSync(file.tempFilePath)) {
+      fs.unlinkSync(file.tempFilePath);
+    }
+
+    res.json({
+      success: true,
+      data: {
+        url: result.secure_url,
+        publicId: result.public_id,
+      },
+      message: 'Document uploaded successfully',
+    });
+  } catch (error) {
+    console.error('Document upload error:', error);
+    if (req.files && req.files.document && req.files.document.tempFilePath && fs.existsSync(req.files.document.tempFilePath)) {
+      fs.unlinkSync(req.files.document.tempFilePath);
+    }
+    res.status(500).json({
+      message: 'Failed to upload document',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+});
+
 module.exports = {
   uploadProfilePicture,
   deleteProfilePicture,
   uploadBookingAttachment,
+  uploadDocument,
 };

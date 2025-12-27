@@ -7,6 +7,7 @@ const protect = asyncHandler(async (req, res, next) => {
   if (!token) {
     return res.status(401).json({ message: 'Not authorized, no token' });
   }
+
   try {
     const decoded = verifyToken(token);
     const user = await User.findById(decoded.id).select('-password');

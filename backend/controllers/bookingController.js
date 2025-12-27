@@ -3,6 +3,7 @@ const { validationResult } = require('express-validator');
 const Booking = require('../models/Booking');
 const User = require('../models/User');
 const Driver = require('../models/Driver');
+const Review = require('../models/Review');
 
 // Helper function for validation errors
 function buildValidationError(res, errors) {
@@ -18,13 +19,19 @@ const createRideBooking = asyncHandler(async (req, res) => {
     return buildValidationError(res, errors);
   }
 
-  const { pickupLocation, destinationLocation } = req.body;
+  const { pickupLocation, destinationLocation, passengers, scheduledTime } = req.body;
+
+  if (!req.user || !req.user.id) {
+    return res.status(401).json({ message: 'User not authenticated' });
+  }
 
   const booking = await Booking.create({
     user: req.user.id,
     type: 'ride',
     pickupLocation,
     destinationLocation,
+    passengers: passengers || 1,
+    scheduledTime,
     status: 'pending',
   });
 
@@ -32,6 +39,13 @@ const createRideBooking = asyncHandler(async (req, res) => {
     .populate('user', 'name email')
     .populate({
       path: 'driver',
+      populate: {
+        path: 'user',
+        select: 'name email',
+      },
+    })
+    .populate({
+      path: 'logisticsPersonnel',
       populate: {
         path: 'user',
         select: 'name email',
@@ -69,6 +83,13 @@ const createDeliveryBooking = asyncHandler(async (req, res) => {
     .populate('user', 'name email')
     .populate({
       path: 'driver',
+      populate: {
+        path: 'user',
+        select: 'name email',
+      },
+    })
+    .populate({
+      path: 'logisticsPersonnel',
       populate: {
         path: 'user',
         select: 'name email',
@@ -127,12 +148,19 @@ const getUserBookings = asyncHandler(async (req, res) => {
 // @access  Private (User)
 const getBookingDetails = asyncHandler(async (req, res) => {
   const booking = await Booking.findById(req.params.id)
-    .populate('user', 'name email avatarUrl')
+    .populate('user', 'name email avatarUrl phoneNumber')
     .populate({
       path: 'driver',
       populate: {
         path: 'user',
-        select: 'name email avatarUrl',
+        select: 'name email avatarUrl phoneNumber',
+      },
+    })
+    .populate({
+      path: 'logisticsPersonnel',
+      populate: {
+        path: 'user',
+        select: 'name email avatarUrl phoneNumber',
       },
     });
 
@@ -153,7 +181,7 @@ const getBookingDetails = asyncHandler(async (req, res) => {
 
 // @desc    Cancel booking
 // @route   PUT /api/bookings/:id/cancel
-// @access  Private (User)
+// @access  Private (User/Driver/Admin)
 const cancelBooking = asyncHandler(async (req, res) => {
   const { reason } = req.body;
 
@@ -163,20 +191,56 @@ const cancelBooking = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: 'Booking not found' });
   }
 
-  // Check if user owns this booking
-  if (booking.user.toString() !== req.user.id) {
+  // Check authorization: User owns it, or Driver is assigned to it, or Admin
+  const isOwner = booking.user.toString() === req.user.id;
+  const isAdmin = req.user.role === 'admin';
+  
+  let isAssignedDriver = false;
+  if (req.user.role === 'driver') {
+    const driver = await Driver.findOne({ user: req.user.id });
+    if (driver && booking.driver && booking.driver.toString() === driver._id.toString()) {
+      isAssignedDriver = true;
+    }
+  }
+
+  if (!isOwner && !isAdmin && !isAssignedDriver) {
     return res.status(403).json({ message: 'Not authorized to cancel this booking' });
   }
 
   // Check if booking can be cancelled
-  if (['completed', 'cancelled', 'in_transit', 'picked_up'].includes(booking.status)) {
-    return res.status(400).json({ message: 'Cannot cancel booking in current status' });
+  if (['completed', 'cancelled'].includes(booking.status)) {
+    return res.status(400).json({ message: 'Booking is already completed or cancelled' });
   }
 
+  // If driver cancels, check if they already started the trip (some systems prevent cancellation after pickup)
+  if (isAssignedDriver && ['picked_up', 'in_transit'].includes(booking.status)) {
+    return res.status(400).json({ message: 'Cannot cancel booking after pickup' });
+  }
+
+  const oldStatus = booking.status;
   booking.status = 'cancelled';
   booking.cancelledAt = new Date();
   booking.cancellationReason = reason;
-  booking.cancelledBy = 'user';
+  
+  if (isOwner) {
+    booking.cancelledBy = 'user';
+  } else if (isAssignedDriver) {
+    booking.cancelledBy = 'driver';
+    // If driver cancels, we should also free up the driver
+    const driver = await Driver.findOne({ user: req.user.id });
+    if (driver) {
+      await driver.completeBooking(); // This clears currentBooking and sets status to available
+    }
+  } else if (isAdmin) {
+    booking.cancelledBy = 'admin';
+    // If admin cancels and a driver was assigned, free up the driver
+    if (booking.driver) {
+      const assignedDriver = await Driver.findById(booking.driver);
+      if (assignedDriver) {
+        await assignedDriver.completeBooking();
+      }
+    }
+  }
 
   await booking.save();
 
@@ -271,6 +335,11 @@ const getBookingStats = asyncHandler(async (req, res) => {
     ? Math.round((result.completedBookings / result.totalBookings) * 100)
     : 0;
 
+  // Get average rating for user
+  const ratingData = await Review.getAverageRating(userId, 'driver_to_user');
+  result.avgRating = ratingData.averageRating;
+  result.totalReviews = ratingData.totalReviews;
+
   res.json({
     success: true,
     data: result,
@@ -293,19 +362,15 @@ const assignDriver = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: 'Booking cannot be assigned in current status' });
   }
 
-  // Verify driver exists and is approved
+  // Verify driver exists and is approved/active
   const Driver = require('../models/Driver');
   const driver = await Driver.findById(driverId);
   if (!driver) {
     return res.status(404).json({ message: 'Driver not found' });
   }
 
-  if (driver.status !== 'approved') {
+  if (!['approved', 'active'].includes(driver.status)) {
     return res.status(400).json({ message: 'Driver is not approved' });
-  }
-
-  if (!driver.isAvailable()) {
-    return res.status(400).json({ message: 'Driver is not available' });
   }
 
   // Update booking
@@ -328,6 +393,13 @@ const assignDriver = asyncHandler(async (req, res) => {
     .populate('user', 'name email')
     .populate({
       path: 'driver',
+      populate: {
+        path: 'user',
+        select: 'name email',
+      },
+    })
+    .populate({
+      path: 'logisticsPersonnel',
       populate: {
         path: 'user',
         select: 'name email',
@@ -384,13 +456,20 @@ const getAllBookings = asyncHandler(async (req, res) => {
     populate: [
       {
         path: 'user',
-        select: 'name email avatarUrl',
+        select: 'name email avatarUrl phoneNumber',
       },
       {
         path: 'driver',
         populate: {
           path: 'user',
-          select: 'name email avatarUrl',
+          select: 'name email avatarUrl phoneNumber',
+        },
+      },
+      {
+        path: 'logisticsPersonnel',
+        populate: {
+          path: 'user',
+          select: 'name email avatarUrl phoneNumber',
         },
       },
     ],
@@ -414,45 +493,109 @@ const getAllBookings = asyncHandler(async (req, res) => {
 // @route   GET /api/bookings/available-drivers
 // @access  Private (Admin)
 const getAvailableDrivers = asyncHandler(async (req, res) => {
-  const { pickupLocation, type } = req.query;
+  const { type } = req.query;
 
   const Driver = require('../models/Driver');
 
-  // Find approved and available drivers
+  // Find all approved drivers (including those on trips or busy, as per user request)
   const query = {
-    status: 'approved',
-    availabilityStatus: 'available',
-    currentBooking: { $exists: false },
+    status: { $in: ['approved', 'active'] },
   };
-
-  // Filter by service areas if pickup location provided
-  if (pickupLocation) {
-    // Simple area matching - in production, use geospatial queries
-    const commonAreas = ['Banjul', 'Serrekunda', 'Brikama', 'Bakau'];
-    const matchedArea = commonAreas.find(area =>
-      pickupLocation.toLowerCase().includes(area.toLowerCase())
-    );
-    if (matchedArea) {
-      query.serviceAreas = matchedArea;
-    }
-  }
-
-  // Filter by driver preferences (accepts rides/deliveries)
-  if (type === 'ride') {
-    query['preferences.acceptsRides'] = true;
-  } else if (type === 'delivery') {
-    query['preferences.acceptsDeliveries'] = true;
-  }
 
   const drivers = await Driver.find(query)
     .populate('user', 'name email avatarUrl')
     .select('vehicle rating availabilityStatus serviceAreas currentLocation')
     .sort({ 'rating.average': -1 })
-    .limit(20);
+    .limit(50); // Increased limit to show more drivers
 
   res.json({
     success: true,
     data: drivers,
+  });
+});
+
+// @desc    Assign logistics personnel to booking (Admin)
+// @route   PUT /api/bookings/:id/assign-logistics
+// @access  Private (Admin)
+const assignLogisticsPersonnel = asyncHandler(async (req, res) => {
+  const { personnelId, price } = req.body;
+
+  const booking = await Booking.findById(req.params.id);
+  if (!booking) {
+    return res.status(404).json({ message: 'Booking not found' });
+  }
+
+  // Check if booking can be assigned
+  if (!['pending'].includes(booking.status)) {
+    return res.status(400).json({ message: 'Booking cannot be assigned in current status' });
+  }
+
+  // Verify logistics personnel exists and is approved/active
+  const LogisticsPersonnel = require('../models/LogisticsPersonnel');
+  const personnel = await LogisticsPersonnel.findById(personnelId);
+  if (!personnel) {
+    return res.status(404).json({ message: 'Logistics personnel not found' });
+  }
+
+  if (!['approved', 'active'].includes(personnel.status)) {
+    return res.status(400).json({ message: 'Logistics personnel is not approved' });
+  }
+
+  // Update booking
+  booking.logisticsPersonnel = personnelId;
+  booking.status = 'driver_assigned'; // We can keep same status or add 'personnel_assigned'
+  booking.price = {
+    amount: price.amount,
+    currency: price.currency || 'GMD',
+    setAt: new Date(),
+    setBy: 'admin',
+  };
+  booking.driverAssignedAt = new Date();
+
+  await booking.save();
+
+  // Assign booking to personnel
+  personnel.currentBooking = booking._id;
+  personnel.availabilityStatus = 'on_delivery';
+  await personnel.save();
+
+  const populatedBooking = await Booking.findById(booking._id)
+    .populate('user', 'name email')
+    .populate({
+      path: 'logisticsPersonnel',
+      populate: {
+        path: 'user',
+        select: 'name email',
+      },
+    });
+
+  res.json({
+    success: true,
+    data: populatedBooking,
+    message: 'Logistics personnel assigned successfully',
+  });
+});
+
+// @desc    Get available logistics personnel for assignment
+// @route   GET /api/bookings/available-logistics
+// @access  Private (Admin)
+const getAvailableLogisticsPersonnel = asyncHandler(async (req, res) => {
+  const LogisticsPersonnel = require('../models/LogisticsPersonnel');
+
+  // Find all approved logistics personnel
+  const query = {
+    status: { $in: ['approved', 'active'] },
+  };
+
+  const personnel = await LogisticsPersonnel.find(query)
+    .populate('user', 'name email avatarUrl')
+    .select('businessName businessType rating availabilityStatus serviceAreas businessAddress services')
+    .sort({ 'rating.average': -1 })
+    .limit(50);
+
+  res.json({
+    success: true,
+    data: personnel,
   });
 });
 
@@ -465,6 +608,8 @@ module.exports = {
   confirmPayment,
   getBookingStats,
   assignDriver,
+  assignLogisticsPersonnel,
   getAllBookings,
   getAvailableDrivers,
+  getAvailableLogisticsPersonnel,
 };

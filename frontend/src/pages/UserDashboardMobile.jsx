@@ -6,36 +6,70 @@ import RideBookingFlow from './userdashboard/RideBookingFlow';
 import DeliveryBookingFlow from './userdashboard/DeliveryBookingFlow';
 import Profile from './userdashboard/Profile';
 import BookingHistory from './userdashboard/BookingHistory';
+import Overview from './userdashboard/Overview';
 import { Settings, Home, MapPin, Calendar, User, Menu, X, Package } from 'lucide-react';
+import { getBookingStats, getUserBookings } from '../services/bookingService';
+import { getDriverProfile } from '../services/driverService';
+import { getLogisticsProfile } from '../services/logisticsService';
 
 export default function UserDashboardMobile() {
-  const { user, logout } = useAuth();
+  const { user, token, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
   const [activeService, setActiveService] = useState('ride');
   const [showHamburgerMenu, setShowHamburgerMenu] = useState(false);
   const [stats, setStats] = useState(null);
+  const [recentBookings, setRecentBookings] = useState([]);
+  const [driverProfile, setDriverProfile] = useState(null);
+  const [logisticsProfile, setLogisticsProfile] = useState(null);
 
   useEffect(() => {
     fetchUserStats();
+    fetchRecentBookings();
+    fetchDriverStatus();
+    fetchLogisticsStatus();
   }, []);
 
   const fetchUserStats = async () => {
     try {
-      // TODO: Replace with actual API call
-      // const response = await api.get('/bookings/stats');
-
-      // Mock stats for now
-      setStats({
-        totalBookings: 24,
-        completedBookings: 22,
-        cancelledBookings: 2,
-        totalSpent: 1850,
-        completionRate: 92,
-        rideBookings: 18,
-        deliveryBookings: 6
-      });
+      const response = await getBookingStats();
+      if (response.success) {
+        setStats(response.data);
+      }
     } catch (error) {
       console.error('Failed to fetch user stats:', error);
+    }
+  };
+
+  const fetchRecentBookings = async () => {
+    try {
+      const response = await getUserBookings({ limit: 5 });
+      if (response.success) {
+        setRecentBookings(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch recent bookings:', error);
+    }
+  };
+
+  const fetchDriverStatus = async () => {
+    try {
+      const response = await getDriverProfile(token);
+      if (response.success) {
+        setDriverProfile(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch driver status:', error);
+    }
+  };
+
+  const fetchLogisticsStatus = async () => {
+    try {
+      const response = await getLogisticsProfile(token);
+      if (response.success) {
+        setLogisticsProfile(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch logistics status:', error);
     }
   };
 
@@ -72,7 +106,9 @@ export default function UserDashboardMobile() {
               <IconComponent className="h-5 w-5 text-indigo-600" />
               <div>
                 <h1 className="text-lg font-semibold text-gray-900">{currentTab?.label}</h1>
-                <p className="text-xs text-gray-600">Welcome back, {user?.name}</p>
+                <p className="text-xs text-gray-600">
+                  Welcome back, {user?.name ? user.name.split(' ')[0] : user?.email?.split('@')[0]}
+                </p>
               </div>
             </div>
             <button
@@ -122,7 +158,17 @@ export default function UserDashboardMobile() {
 
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto px-4 py-4 pb-20">
-        {activeTab === 'overview' && <MobileHomeActions onServiceSelect={handleServiceSelect} />}
+        {activeTab === 'overview' && (
+          <div className="space-y-6">
+            <MobileHomeActions onServiceSelect={handleServiceSelect} />
+            <Overview 
+              stats={stats} 
+              recentBookings={recentBookings} 
+              driverProfile={driverProfile}
+              logisticsProfile={logisticsProfile}
+            />
+          </div>
+        )}
 
         {activeTab === 'ride' && <RideBookingFlow user={user} />}
 

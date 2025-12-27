@@ -136,6 +136,9 @@ const DriverSchema = new mongoose.Schema(
       vehicleRegistration: { type: String },
       insuranceDocument: { type: String },
       vehiclePhoto: { type: String },
+      vehicleFrontPhoto: { type: String },
+      vehicleSidePhoto: { type: String },
+      vehicleBackPhoto: { type: String },
       profilePhoto: { type: String },
     },
 

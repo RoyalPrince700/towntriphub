@@ -21,7 +21,8 @@ const AdminSidebar = ({ activeTab, setActiveTab, isCollapsed, setIsCollapsed }) 
     { id: 'overview', label: 'Overview', icon: BarChart3, description: 'Dashboard & stats' },
     { id: 'bookings', label: 'Bookings', icon: Car, description: 'Manage all bookings' },
     { id: 'drivers', label: 'Drivers', icon: UserCheck, description: 'Driver management' },
-    { id: 'logistics', label: 'Logistics', icon: Package, description: 'Delivery personnel' },
+    { id: 'logistics', label: 'Logistics', icon: Package, description: 'Logistics orders' },
+    { id: 'logistics-personnel', label: 'Logistics Personnel', icon: Shield, description: 'Delivery personnel' },
     { id: 'users', label: 'Users', icon: Users, description: 'User management' },
     { id: 'analytics', label: 'Analytics', icon: TrendingUp, description: 'Reports & insights' },
     { id: 'settings', label: 'Settings', icon: Settings, description: 'System settings' },
@@ -34,19 +35,7 @@ const AdminSidebar = ({ activeTab, setActiveTab, isCollapsed, setIsCollapsed }) 
       {/* Toggle Button */}
       <button
         onClick={toggleSidebar}
-        className={`absolute top-1/2 transform -translate-y-1/2 z-10 bg-white border border-gray-200 rounded-full p-1 shadow-md hover:shadow-lg transition-all duration-200 ${
-          isCollapsed ? 'right-2 opacity-0 hover:opacity-100' : 'right-2'
-        }`}
-        onMouseEnter={(e) => {
-          if (isCollapsed) {
-            e.currentTarget.style.opacity = '1';
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (isCollapsed) {
-            e.currentTarget.style.opacity = '0';
-          }
-        }}
+        className="absolute -right-3 top-1/2 transform -translate-y-1/2 z-20 bg-white border border-gray-200 rounded-full p-1 shadow-md hover:bg-gray-50 transition-all duration-200 flex items-center justify-center"
       >
         {isCollapsed ? (
           <ChevronRight className="h-4 w-4 text-gray-600" />

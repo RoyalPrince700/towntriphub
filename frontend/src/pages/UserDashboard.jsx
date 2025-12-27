@@ -4,10 +4,8 @@ import UserDashboardDesktop from './UserDashboardDesktop';
 import UserDashboardMobile from './UserDashboardMobile';
 
 export default function UserDashboard() {
-  const { isMobile } = useResponsive();
+  const { isMobileOrTablet } = useResponsive();
 
-  // Render mobile version for mobile and tablet, desktop version for larger screens
-  return isMobile ? <UserDashboardMobile /> : <UserDashboardDesktop />;
+  // Render mobile-first layout for phones and tablets, desktop for larger screens
+  return isMobileOrTablet ? <UserDashboardMobile /> : <UserDashboardDesktop />;
 }
-
-

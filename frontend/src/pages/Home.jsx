@@ -93,7 +93,7 @@ const Home = () => {
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
-            Welcome back, {user.name}!
+            Welcome back, {user?.name ? user.name.split(' ')[0] : user?.email?.split('@')[0]}!
           </h1>
           <p className="mt-2 text-gray-600">
             Ready to book a ride or send a delivery? Choose your service below.

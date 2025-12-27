@@ -9,8 +9,10 @@ const {
   confirmPayment,
   getBookingStats,
   assignDriver,
+  assignLogisticsPersonnel,
   getAllBookings,
   getAvailableDrivers,
+  getAvailableLogisticsPersonnel,
 } = require('../controllers/bookingController');
 const { protect, authorize } = require('../middleware/auth');
 
@@ -24,11 +26,35 @@ router.post(
   '/ride',
   [
     body('pickupLocation.address').isString().notEmpty().withMessage('Pickup address is required'),
-    body('pickupLocation.coordinates.latitude').optional().isFloat({ min: -90, max: 90 }),
-    body('pickupLocation.coordinates.longitude').optional().isFloat({ min: -180, max: 180 }),
+    body('pickupLocation.coordinates.latitude').optional().custom((value) => {
+      if (value === null || value === undefined) return true;
+      if (typeof value !== 'number' || value < -90 || value > 90) {
+        throw new Error('Latitude must be a number between -90 and 90');
+      }
+      return true;
+    }),
+    body('pickupLocation.coordinates.longitude').optional().custom((value) => {
+      if (value === null || value === undefined) return true;
+      if (typeof value !== 'number' || value < -180 || value > 180) {
+        throw new Error('Longitude must be a number between -180 and 180');
+      }
+      return true;
+    }),
     body('destinationLocation.address').isString().notEmpty().withMessage('Destination address is required'),
-    body('destinationLocation.coordinates.latitude').optional().isFloat({ min: -90, max: 90 }),
-    body('destinationLocation.coordinates.longitude').optional().isFloat({ min: -180, max: 180 }),
+    body('destinationLocation.coordinates.latitude').optional().custom((value) => {
+      if (value === null || value === undefined) return true;
+      if (typeof value !== 'number' || value < -90 || value > 90) {
+        throw new Error('Latitude must be a number between -90 and 90');
+      }
+      return true;
+    }),
+    body('destinationLocation.coordinates.longitude').optional().custom((value) => {
+      if (value === null || value === undefined) return true;
+      if (typeof value !== 'number' || value < -180 || value > 180) {
+        throw new Error('Longitude must be a number between -180 and 180');
+      }
+      return true;
+    }),
   ],
   createRideBooking
 );
@@ -38,11 +64,35 @@ router.post(
   '/delivery',
   [
     body('pickupLocation.address').isString().notEmpty().withMessage('Pickup address is required'),
-    body('pickupLocation.coordinates.latitude').optional().isFloat({ min: -90, max: 90 }),
-    body('pickupLocation.coordinates.longitude').optional().isFloat({ min: -180, max: 180 }),
+    body('pickupLocation.coordinates.latitude').optional().custom((value) => {
+      if (value === null || value === undefined) return true;
+      if (typeof value !== 'number' || value < -90 || value > 90) {
+        throw new Error('Latitude must be a number between -90 and 90');
+      }
+      return true;
+    }),
+    body('pickupLocation.coordinates.longitude').optional().custom((value) => {
+      if (value === null || value === undefined) return true;
+      if (typeof value !== 'number' || value < -180 || value > 180) {
+        throw new Error('Longitude must be a number between -180 and 180');
+      }
+      return true;
+    }),
     body('destinationLocation.address').isString().notEmpty().withMessage('Destination address is required'),
-    body('destinationLocation.coordinates.latitude').optional().isFloat({ min: -90, max: 90 }),
-    body('destinationLocation.coordinates.longitude').optional().isFloat({ min: -180, max: 180 }),
+    body('destinationLocation.coordinates.latitude').optional().custom((value) => {
+      if (value === null || value === undefined) return true;
+      if (typeof value !== 'number' || value < -90 || value > 90) {
+        throw new Error('Latitude must be a number between -90 and 90');
+      }
+      return true;
+    }),
+    body('destinationLocation.coordinates.longitude').optional().custom((value) => {
+      if (value === null || value === undefined) return true;
+      if (typeof value !== 'number' || value < -180 || value > 180) {
+        throw new Error('Longitude must be a number between -180 and 180');
+      }
+      return true;
+    }),
     body('packageDetails.description').optional().isString().isLength({ max: 500 }),
     body('packageDetails.weight').optional().isFloat({ min: 0 }),
     body('packageDetails.dimensions.length').optional().isFloat({ min: 0 }),
@@ -87,6 +137,25 @@ router.get(
   getAllBookings
 );
 
+// Get available drivers for admin assignment (must come before parameterized routes)
+router.get(
+  '/available-drivers',
+  protect,
+  authorize('admin'),
+  [
+    query('type').optional().isIn(['ride', 'delivery']).withMessage('Invalid type'),
+  ],
+  getAvailableDrivers
+);
+
+// Get available logistics personnel for admin assignment
+router.get(
+  '/available-logistics',
+  protect,
+  authorize('admin'),
+  getAvailableLogisticsPersonnel
+);
+
 router.put(
   '/:id/assign-driver',
   protect,
@@ -98,6 +167,19 @@ router.put(
     body('price.currency').optional().isString().withMessage('Valid currency is required'),
   ],
   assignDriver
+);
+
+router.put(
+  '/:id/assign-logistics',
+  protect,
+  authorize('admin'),
+  [
+    param('id').isMongoId().withMessage('Invalid booking ID'),
+    body('personnelId').isMongoId().withMessage('Invalid personnel ID'),
+    body('price.amount').isFloat({ min: 0 }).withMessage('Valid price amount is required'),
+    body('price.currency').optional().isString().withMessage('Valid currency is required'),
+  ],
+  assignLogisticsPersonnel
 );
 
 // Get single booking details
@@ -126,17 +208,6 @@ router.put(
     param('id').isMongoId().withMessage('Invalid booking ID'),
   ],
   confirmPayment
-);
-
-router.get(
-  '/available-drivers',
-  protect,
-  authorize('admin'),
-  [
-    query('pickupLocation').optional().isString().withMessage('Pickup location must be a string'),
-    query('type').optional().isIn(['ride', 'delivery']).withMessage('Invalid type'),
-  ],
-  getAvailableDrivers
 );
 
 module.exports = router;

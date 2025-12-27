@@ -4,6 +4,7 @@ const {
   uploadProfilePicture,
   deleteProfilePicture,
   uploadBookingAttachment,
+  uploadDocument,
 } = require('../controllers/uploadController');
 const { protect } = require('../middleware/auth');
 
@@ -27,5 +28,8 @@ router.post(
   ],
   uploadBookingAttachment
 );
+
+// Upload registration document
+router.post('/document', uploadDocument);
 
 module.exports = router;

@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { MapPin, Package, Scale, Clock, CreditCard, Check, Truck } from 'lucide-react';
+import { createDeliveryBooking } from '../../services/bookingService';
 
 const DeliveryBookingFlow = ({ user }) => {
-  const [bookingStep, setBookingStep] = useState('form');
+  const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [pickupLocation, setPickupLocation] = useState('');
   const [deliveryLocation, setDeliveryLocation] = useState('');
   const [packageDescription, setPackageDescription] = useState('');
@@ -18,16 +21,50 @@ const DeliveryBookingFlow = ({ user }) => {
     { id: 'scheduled', name: 'Scheduled Delivery', time: 'Choose time', price: 'GMD 100', icon: '📅' },
   ];
 
-  const handleBooking = () => {
-    // Simulate booking process
-    setBookingStep('confirming');
-    setTimeout(() => {
-      setBookingStep('confirmed');
-    }, 2000);
+  const handleBooking = async () => {
+    if (!pickupLocation.trim() || !deliveryLocation.trim() || !packageDescription.trim()) {
+      setError('Please fill in all required fields');
+      return;
+    }
+
+    if (pickupLocation.trim() === deliveryLocation.trim()) {
+      setError('Pickup and delivery locations cannot be the same');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const packageDetails = {
+        description: packageDescription,
+        weight: packageWeight ? parseFloat(packageWeight) : undefined,
+        value: packageValue ? parseFloat(packageValue) : undefined,
+      };
+
+      const bookingData = {
+        pickupLocation: {
+          address: pickupLocation,
+          coordinates: { latitude: null, longitude: null }
+        },
+        destinationLocation: {
+          address: deliveryLocation,
+          coordinates: { latitude: null, longitude: null }
+        },
+        packageDetails,
+      };
+
+      await createDeliveryBooking(bookingData);
+      setSuccess(true);
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Failed to book delivery');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const resetForm = () => {
-    setBookingStep('form');
+    setSuccess(false);
     setPickupLocation('');
     setDeliveryLocation('');
     setPackageDescription('');
@@ -36,16 +73,17 @@ const DeliveryBookingFlow = ({ user }) => {
     setRecipientName('');
     setRecipientPhone('');
     setDeliveryType('standard');
+    setError('');
   };
 
-  if (bookingStep === 'confirmed') {
+  if (success) {
     return (
       <div className="text-center py-8">
         <div className="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
           <Check className="h-8 w-8 text-green-600" />
         </div>
         <h2 className="text-xl font-semibold text-gray-900 mb-2">Package Booked Successfully!</h2>
-        <p className="text-gray-600 mb-4">Your package is being prepared for delivery</p>
+        <p className="text-gray-600 mb-4">Your delivery has been created. The admin will assign a logistics personnel soon.</p>
         <div className="bg-white rounded-lg p-4 shadow-sm">
           <div className="text-sm text-gray-600 space-y-1">
             <p><strong>From:</strong> {pickupLocation}</p>
@@ -72,6 +110,13 @@ const DeliveryBookingFlow = ({ user }) => {
         <h2 className="text-xl font-semibold text-gray-900 mb-2">Send Package</h2>
         <p className="text-gray-600 text-sm">Reliable delivery across Gambia</p>
       </div>
+
+      {/* Error Display */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-600 text-sm">{error}</p>
+        </div>
+      )}
 
       {/* Booking Form */}
       <div className="space-y-4">
@@ -211,14 +256,14 @@ const DeliveryBookingFlow = ({ user }) => {
         {/* Book Button */}
         <button
           onClick={handleBooking}
-          disabled={!pickupLocation || !deliveryLocation || !packageDescription || !recipientName || !recipientPhone || bookingStep === 'confirming'}
+          disabled={!pickupLocation || !deliveryLocation || !packageDescription || loading}
           className={`w-full py-4 rounded-lg font-semibold transition-colors ${
-            pickupLocation && deliveryLocation && packageDescription && recipientName && recipientPhone && bookingStep !== 'confirming'
+            pickupLocation && deliveryLocation && packageDescription && !loading
               ? 'bg-green-600 text-white hover:bg-green-700'
               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
           }`}
         >
-          {bookingStep === 'confirming' ? (
+          {loading ? (
             <div className="flex items-center justify-center space-x-2">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
               <span>Booking Delivery...</span>
@@ -226,7 +271,7 @@ const DeliveryBookingFlow = ({ user }) => {
           ) : (
             <div className="flex items-center justify-center space-x-2">
               <Truck className="h-5 w-5" />
-              <span>Send Package - {deliveryOptions.find(d => d.id === deliveryType)?.price || 'Select type'}</span>
+              <span>Send Package</span>
             </div>
           )}
         </button>

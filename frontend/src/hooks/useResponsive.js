@@ -1,36 +1,31 @@
 import { useState, useEffect } from 'react';
 
+// Compute responsive state once so mobile devices render the right layout immediately
+const getScreenState = () => {
+  if (typeof window === 'undefined') {
+    return { isMobile: false, isTablet: false, isDesktop: true };
+  }
+
+  const width = window.innerWidth;
+  return {
+    isMobile: width < 768,
+    isTablet: width >= 768 && width < 1024,
+    isDesktop: width >= 1024
+  };
+};
+
 export const useResponsive = () => {
-  const [isMobile, setIsMobile] = useState(false);
-  const [isTablet, setIsTablet] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(true);
+  const [screenState, setScreenState] = useState(getScreenState);
 
   useEffect(() => {
-    const checkScreenSize = () => {
-      const width = window.innerWidth;
+    const handleResize = () => setScreenState(getScreenState());
 
-      // Mobile: < 768px
-      // Tablet: 768px - 1024px
-      // Desktop: > 1024px
-      setIsMobile(width < 768);
-      setIsTablet(width >= 768 && width < 1024);
-      setIsDesktop(width >= 1024);
-    };
-
-    // Check on mount
-    checkScreenSize();
-
-    // Add event listener
-    window.addEventListener('resize', checkScreenSize);
-
-    // Cleanup
-    return () => window.removeEventListener('resize', checkScreenSize);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   return {
-    isMobile,
-    isTablet,
-    isDesktop,
-    isMobileOrTablet: isMobile || isTablet
+    ...screenState,
+    isMobileOrTablet: screenState.isMobile || screenState.isTablet
   };
 };

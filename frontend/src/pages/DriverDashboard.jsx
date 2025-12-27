@@ -12,6 +12,7 @@ import {
   XCircle,
   Navigation,
   Star,
+  Users,
   TrendingUp,
   AlertCircle,
   Power,
@@ -30,6 +31,10 @@ const DriverDashboard = () => {
   const [earnings, setEarnings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancellingBooking, setCancellingBooking] = useState(null);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelLoading, setCancelLoading] = useState(false);
 
   useEffect(() => {
     if (user?.role !== 'driver') {
@@ -43,12 +48,19 @@ const DriverDashboard = () => {
     try {
       setLoading(true);
 
+      const authData = JSON.parse(localStorage.getItem('tth_auth') || '{}');
+      const token = authData.token;
+
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
+
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+      };
+
       // Fetch driver profile
-      const profileResponse = await fetch('/api/drivers/profile', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
+      const profileResponse = await fetch('/api/drivers/profile', { headers });
 
       if (!profileResponse.ok) {
         throw new Error('Failed to fetch driver profile');
@@ -57,12 +69,8 @@ const DriverDashboard = () => {
       const profileData = await profileResponse.json();
       setDriverProfile(profileData.data);
 
-      // Fetch assignments
-      const assignmentsResponse = await fetch('/api/drivers/assignments?status=pending,driver_assigned,driver_en_route,picked_up,in_transit', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
+      // Fetch assignments (all relevant statuses)
+      const assignmentsResponse = await fetch('/api/drivers/assignments?status=driver_assigned,driver_en_route,picked_up,in_transit,completed,cancelled', { headers });
 
       if (assignmentsResponse.ok) {
         const assignmentsData = await assignmentsResponse.json();
@@ -70,11 +78,7 @@ const DriverDashboard = () => {
       }
 
       // Fetch statistics
-      const statsResponse = await fetch('/api/drivers/statistics', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
+      const statsResponse = await fetch('/api/drivers/statistics', { headers });
 
       if (statsResponse.ok) {
         const statsData = await statsResponse.json();
@@ -82,11 +86,7 @@ const DriverDashboard = () => {
       }
 
       // Fetch earnings
-      const earningsResponse = await fetch('/api/drivers/earnings', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
+      const earningsResponse = await fetch('/api/drivers/earnings', { headers });
 
       if (earningsResponse.ok) {
         const earningsData = await earningsResponse.json();
@@ -103,11 +103,14 @@ const DriverDashboard = () => {
 
   const updateAvailabilityStatus = async (status) => {
     try {
+      const authData = JSON.parse(localStorage.getItem('tth_auth') || '{}');
+      const token = authData.token;
+
       const response = await fetch('/api/drivers/availability', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({ availabilityStatus: status }),
       });
@@ -125,6 +128,73 @@ const DriverDashboard = () => {
     } catch (err) {
       console.error('Error updating availability:', err);
       alert('Failed to update availability status');
+    }
+  };
+
+  const updateTripStatus = async (bookingId, status) => {
+    try {
+      const authData = JSON.parse(localStorage.getItem('tth_auth') || '{}');
+      const token = authData.token;
+
+      const response = await fetch(`/api/drivers/assignments/${bookingId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Failed to update status');
+      }
+
+      // Refresh data
+      fetchDriverData();
+
+    } catch (err) {
+      console.error('Error updating status:', err);
+      alert(err.message);
+    }
+  };
+
+  const handleCancelBooking = async (e) => {
+    e.preventDefault();
+    if (!cancelReason.trim()) {
+      alert('Please provide a reason for cancellation');
+      return;
+    }
+
+    try {
+      setCancelLoading(true);
+      const authData = JSON.parse(localStorage.getItem('tth_auth') || '{}');
+      const token = authData.token;
+
+      const response = await fetch(`/api/bookings/${cancellingBooking._id}/cancel`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ reason: cancelReason }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Failed to cancel booking');
+      }
+
+      setShowCancelModal(false);
+      setCancellingBooking(null);
+      setCancelReason('');
+      fetchDriverData();
+
+    } catch (err) {
+      console.error('Error cancelling booking:', err);
+      alert(err.message);
+    } finally {
+      setCancelLoading(false);
     }
   };
 
@@ -169,6 +239,36 @@ const DriverDashboard = () => {
         color: 'bg-blue-100 text-blue-800',
         icon: Navigation,
         text: 'On Trip'
+      },
+      driver_assigned: {
+        color: 'bg-blue-100 text-blue-800',
+        icon: Car,
+        text: 'Driver Assigned'
+      },
+      driver_en_route: {
+        color: 'bg-purple-100 text-purple-800',
+        icon: Navigation,
+        text: 'En Route'
+      },
+      picked_up: {
+        color: 'bg-indigo-100 text-indigo-800',
+        icon: MapPin,
+        text: 'Picked Up'
+      },
+      in_transit: {
+        color: 'bg-cyan-100 text-cyan-800',
+        icon: Car,
+        text: 'In Transit'
+      },
+      completed: {
+        color: 'bg-green-100 text-green-800',
+        icon: CheckCircle,
+        text: 'Completed'
+      },
+      cancelled: {
+        color: 'bg-red-100 text-red-800',
+        icon: XCircle,
+        text: 'Cancelled'
       }
     };
     return configs[status] || configs.pending;
@@ -200,8 +300,15 @@ const DriverDashboard = () => {
     );
   }
 
-  const pendingAssignments = assignments.filter(a => a.status === 'driver_assigned');
-  const activeAssignment = assignments.find(a => ['driver_en_route', 'picked_up', 'in_transit'].includes(a.status));
+  const assignedRides = assignments.filter(a => a.status === 'driver_assigned');
+  const pendingRides = assignments.filter(a => ['driver_en_route', 'picked_up', 'in_transit'].includes(a.status));
+  const completedRides = assignments.filter(a => a.status === 'completed');
+  const cancelledRides = assignments.filter(a => a.status === 'cancelled');
+  
+  // Check if there's an ongoing ride (already accepted)
+  const ongoingRide = assignments.find(a => ['driver_en_route', 'picked_up', 'in_transit'].includes(a.status));
+  
+  const activeAssignment = ongoingRide || assignments.find(a => a.status === 'driver_assigned');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -215,9 +322,16 @@ const DriverDashboard = () => {
               <h1 className="text-3xl font-bold text-gray-900">
                 Driver Dashboard
               </h1>
-              <p className="mt-2 text-gray-600">
-                Welcome back, {user?.name}
-              </p>
+              <div className="flex items-center mt-2">
+                <p className="text-gray-600">
+                  Welcome back, {user?.name ? user.name.split(' ')[0] : user?.email?.split('@')[0]}
+                </p>
+                {user?.role === 'driver' && (
+                  <span className="ml-3 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wider">
+                    Driver
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Availability Toggle */}
@@ -258,18 +372,21 @@ const DriverDashboard = () => {
         </div>
 
         {/* Tab Navigation */}
-        <div className="mb-8">
-          <nav className="flex space-x-8">
+        <div className="mb-8 overflow-x-auto">
+          <nav className="flex space-x-4 sm:space-x-8 min-w-max pb-2">
             {[
               { id: 'overview', label: 'Overview', icon: BarChart3 },
-              { id: 'assignments', label: 'Assignments', icon: MapPin },
+              { id: 'assigned', label: 'Assigned Ride', icon: Car },
+              { id: 'pending', label: 'Accepted Rides', icon: Navigation },
+              { id: 'completed', label: 'Completed Rides', icon: CheckCircle },
+              { id: 'cancelled', label: 'Cancelled Rides', icon: XCircle },
               { id: 'earnings', label: 'Earnings', icon: DollarSign },
               { id: 'profile', label: 'Profile', icon: Settings },
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center px-1 py-2 border-b-2 font-medium text-sm ${
+                className={`flex items-center px-1 py-2 border-b-2 font-medium text-sm whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'border-indigo-500 text-indigo-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -336,45 +453,140 @@ const DriverDashboard = () => {
                     </div>
                   </>
                 )}
-              </div>
-
-              {/* Active Assignment */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Current Assignment</h3>
-                {activeAssignment ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Status:</span>
-                      <div className={`px-2 py-1 rounded-full text-xs ${getStatusConfig(activeAssignment.status).color}`}>
-                        {getStatusConfig(activeAssignment.status).text}
+                
+                {/* Recent Trips Mini List */}
+                <div className="sm:col-span-2 bg-white rounded-lg shadow p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
+                    <button 
+                      onClick={() => setActiveTab('completed')}
+                      className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+                    >
+                      View all
+                    </button>
+                  </div>
+                  <div className="space-y-4">
+                    {[...completedRides, ...cancelledRides]
+                      .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt))
+                      .slice(0, 3)
+                      .map((trip) => (
+                      <div key={trip._id} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                        <div className="flex items-center">
+                          <div className={`p-2 rounded-full mr-3 ${trip.status === 'completed' ? 'bg-green-50' : 'bg-red-50'}`}>
+                            {trip.status === 'completed' ? (
+                              <CheckCircle className="h-4 w-4 text-green-600" />
+                            ) : (
+                              <XCircle className="h-4 w-4 text-red-600" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900 capitalize">{trip.type} to {trip.destinationLocation?.address.split(',')[0]}</p>
+                            <p className="text-xs text-gray-500">{new Date(trip.updatedAt || trip.createdAt).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                        <p className={`text-sm font-bold ${trip.status === 'completed' ? 'text-gray-900' : 'text-red-400'}`}>
+                          {trip.status === 'completed' ? `GMD ${trip.price?.amount}` : 'Cancelled'}
+                        </p>
                       </div>
-                    </div>
-                    <div className="text-sm">
-                      <p className="text-gray-600">From: {activeAssignment.pickupLocation?.address}</p>
-                      <p className="text-gray-600">To: {activeAssignment.destinationLocation?.address}</p>
-                    </div>
-                    {activeAssignment.price && (
-                      <p className="text-lg font-semibold text-green-600">
-                        GMD {activeAssignment.price.amount}
-                      </p>
+                    ))}
+                    {completedRides.length === 0 && cancelledRides.length === 0 && (
+                      <p className="text-center py-4 text-gray-500 text-sm">No recent activity</p>
                     )}
                   </div>
-                ) : (
-                  <p className="text-gray-500 text-sm">No active assignment</p>
-                )}
+                </div>
+              </div>
+
+              {/* Current/Ongoing Ride Sidebar */}
+              <div className="space-y-6">
+                <div className="bg-white rounded-lg shadow p-6 border-l-4 border-indigo-500">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    {ongoingRide ? 'Ongoing Ride' : 'Next Assignment'}
+                  </h3>
+                  {activeAssignment ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Status</span>
+                        <div className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${getStatusConfig(activeAssignment.status).color}`}>
+                          {getStatusConfig(activeAssignment.status).text}
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-xs text-gray-500">From</p>
+                          <p className="text-sm font-medium text-gray-900 line-clamp-1">{activeAssignment.pickupLocation?.address}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500">To</p>
+                          <p className="text-sm font-medium text-gray-900 line-clamp-1">{activeAssignment.destinationLocation?.address}</p>
+                        </div>
+                      </div>
+
+                      <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
+                        <div>
+                          <p className="text-xs text-gray-500">Customer</p>
+                          <p className="text-sm font-bold text-gray-900">{activeAssignment.user?.name}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-gray-500">Fare</p>
+                          <p className="text-lg font-bold text-green-600">GMD {activeAssignment.price?.amount || 'TBD'}</p>
+                        </div>
+                      </div>
+
+                      <button 
+                        onClick={() => setActiveTab(ongoingRide ? 'pending' : 'assigned')}
+                        className="w-full mt-2 bg-indigo-600 text-white py-2 rounded-lg text-sm font-bold hover:bg-indigo-700 transition-colors shadow-sm"
+                      >
+                        {ongoingRide ? 'Manage Ongoing Ride' : 'View Assignment'}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Car className="h-10 w-10 text-gray-200 mx-auto mb-2" />
+                      <p className="text-gray-500 text-sm">No active ride</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Quick Availability Toggle (Small Version) */}
+                <div className="bg-indigo-900 rounded-lg shadow p-6 text-white">
+                  <h3 className="text-sm font-bold mb-4 opacity-80">Online Status</h3>
+                  <div className="grid grid-cols-1 gap-2">
+                    {['offline', 'available', 'busy'].map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => updateAvailabilityStatus(status)}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold capitalize transition-all ${
+                          driverProfile?.availabilityStatus === status
+                            ? 'bg-white text-indigo-900 shadow-md transform scale-105'
+                            : 'bg-indigo-800 text-indigo-300 hover:bg-indigo-700'
+                        }`}
+                      >
+                        {status}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           )}
 
-          {/* Assignments Tab */}
-          {activeTab === 'assignments' && (
+          {/* Assigned Ride Tab */}
+          {activeTab === 'assigned' && (
             <div className="space-y-6">
-              {/* Pending Assignments */}
-              {pendingAssignments.length > 0 && (
-                <div className="bg-white rounded-lg shadow p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">New Assignments</h3>
+              <div className="bg-white rounded-lg shadow p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">New Assignments</h3>
+                  {ongoingRide && (
+                    <span className="text-xs font-medium text-orange-600 bg-orange-50 px-2 py-1 rounded-full flex items-center">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      Complete current ride to accept new ones
+                    </span>
+                  )}
+                </div>
+                {assignedRides.length > 0 ? (
                   <div className="space-y-4">
-                    {pendingAssignments.map((assignment) => (
+                    {assignedRides.map((assignment) => (
                       <div key={assignment._id} className="border border-gray-200 rounded-lg p-4">
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center">
@@ -394,10 +606,22 @@ const DriverDashboard = () => {
                               <MapPin className="h-4 w-4 mr-1" />
                               From: {assignment.pickupLocation?.address}
                             </div>
-                            <div className="flex items-center text-sm text-gray-600">
+                            <div className="flex items-center text-sm text-gray-600 mb-2">
                               <MapPin className="h-4 w-4 mr-1" />
                               To: {assignment.destinationLocation?.address}
                             </div>
+                            {assignment.passengers && (
+                              <div className="flex items-center text-sm text-gray-600 mb-2">
+                                <Users className="h-4 w-4 mr-1" />
+                                Passengers: {assignment.passengers}
+                              </div>
+                            )}
+                            {assignment.scheduledTime && (
+                              <div className="flex items-center text-sm text-gray-600">
+                                <Clock className="h-4 w-4 mr-1" />
+                                Scheduled: {new Date(assignment.scheduledTime).toLocaleString()}
+                              </div>
+                            )}
                           </div>
 
                           <div className="text-right">
@@ -411,81 +635,220 @@ const DriverDashboard = () => {
                         </div>
 
                         <div className="flex justify-end space-x-3">
-                          <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
-                            Accept Assignment
+                          <button 
+                            onClick={() => updateTripStatus(assignment._id, 'driver_en_route')}
+                            disabled={!!ongoingRide}
+                            className={`px-4 py-2 rounded-lg transition-colors font-medium ${
+                              ongoingRide 
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'bg-green-600 text-white hover:bg-green-700'
+                            }`}
+                          >
+                            Accept & Start
                           </button>
-                          <button className="bg-red-100 text-red-700 px-4 py-2 rounded-lg hover:bg-red-200 transition-colors">
-                            Decline
+                          <button 
+                            onClick={() => {
+                              setCancellingBooking(assignment);
+                              setShowCancelModal(true);
+                            }}
+                            className="bg-red-100 text-red-700 px-4 py-2 rounded-lg hover:bg-red-200 transition-colors font-medium"
+                          >
+                            Cancel
                           </button>
                         </div>
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
-
-              {/* Active Assignment Management */}
-              {activeAssignment && (
-                <div className="bg-white rounded-lg shadow p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Active Trip</h3>
-                  <div className="border border-gray-200 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center">
-                        <Navigation className="h-5 w-5 text-blue-600 mr-2" />
-                        <span className="font-medium text-gray-900">Trip in Progress</span>
-                      </div>
-                      <div className={`px-3 py-1 rounded-full text-sm ${getStatusConfig(activeAssignment.status).color}`}>
-                        {getStatusConfig(activeAssignment.status).text}
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <p className="text-sm text-gray-600">Customer: {activeAssignment.user?.name}</p>
-                        <p className="text-sm text-gray-600">Phone: {activeAssignment.user?.phoneNumber || 'N/A'}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-lg font-semibold text-green-600">
-                          GMD {activeAssignment.price?.amount}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Trip Actions */}
-                    <div className="flex flex-wrap gap-3">
-                      {activeAssignment.status === 'driver_assigned' && (
-                        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                          Start Trip (En Route)
-                        </button>
-                      )}
-                      {activeAssignment.status === 'driver_en_route' && (
-                        <button className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
-                          Picked Up Passenger
-                        </button>
-                      )}
-                      {activeAssignment.status === 'picked_up' && (
-                        <button className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors">
-                          Start Journey
-                        </button>
-                      )}
-                      {activeAssignment.status === 'in_transit' && (
-                        <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
-                          Complete Trip
-                        </button>
-                      )}
-                    </div>
+                ) : (
+                  <div className="text-center py-12 bg-gray-50 rounded-lg">
+                    <Car className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500">No new assignments at the moment</p>
                   </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Accepted Rides (Pending) Tab */}
+          {activeTab === 'pending' && (
+            <div className="space-y-6">
+              <div className="bg-white rounded-lg shadow p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Accepted & Ongoing Rides</h3>
+                {pendingRides.length > 0 ? (
+                  <div className="space-y-6">
+                    {pendingRides.map((ride) => (
+                      <div key={ride._id} className="border border-indigo-100 bg-indigo-50/30 rounded-lg p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center">
+                            <Navigation className="h-6 w-6 text-indigo-600 mr-2" />
+                            <span className="font-bold text-gray-900">Ride in Progress</span>
+                          </div>
+                          <div className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusConfig(ride.status).color}`}>
+                            {getStatusConfig(ride.status).text}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+                          <div>
+                            <div className="space-y-4">
+                              <div>
+                                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Pickup</p>
+                                <p className="text-sm text-gray-900 font-medium mt-1">{ride.pickupLocation?.address}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Destination</p>
+                                <p className="text-sm text-gray-900 font-medium mt-1">{ride.destinationLocation?.address}</p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Customer Details</p>
+                            <p className="text-sm font-bold text-gray-900">{ride.user?.name}</p>
+                            <p className="text-sm text-indigo-600 mt-1">{ride.user?.phoneNumber || 'N/A'}</p>
+                            <div className="mt-4 pt-4 border-t border-gray-100">
+                              <p className="text-sm font-bold text-green-600 text-xl">GMD {ride.price?.amount}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Trip Actions */}
+                        <div className="flex flex-wrap gap-4">
+                          {ride.status === 'driver_assigned' && (
+                            <button 
+                              onClick={() => updateTripStatus(ride._id, 'driver_en_route')}
+                              className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors font-bold shadow-md"
+                            >
+                              Start Trip
+                            </button>
+                          )}
+                          {ride.status === 'driver_en_route' && (
+                            <button 
+                              onClick={() => updateTripStatus(ride._id, 'picked_up')}
+                              className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors font-bold shadow-md"
+                            >
+                              Picked Up Passenger
+                            </button>
+                          )}
+                          {ride.status === 'picked_up' && (
+                            <button 
+                              onClick={() => updateTripStatus(ride._id, 'in_transit')}
+                              className="bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700 transition-colors font-bold shadow-md"
+                            >
+                              Start Journey
+                            </button>
+                          )}
+                          {ride.status === 'in_transit' && (
+                            <button 
+                              onClick={() => updateTripStatus(ride._id, 'completed')}
+                              className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors font-bold shadow-md"
+                            >
+                              Complete Trip
+                            </button>
+                          )}
+                          
+                          {['driver_assigned', 'driver_en_route'].includes(ride.status) && (
+                            <button 
+                              onClick={() => {
+                                setCancellingBooking(ride);
+                                setShowCancelModal(true);
+                              }}
+                              className="bg-white text-red-600 border border-red-200 px-6 py-2 rounded-lg hover:bg-red-50 transition-colors font-medium"
+                            >
+                              Cancel Ride
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 bg-gray-50 rounded-lg">
+                    <Navigation className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500">No active rides at the moment</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Completed Rides Tab */}
+          {activeTab === 'completed' && (
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Completed Rides</h3>
+              {completedRides.length > 0 ? (
+                <div className="space-y-4">
+                  {completedRides.map((trip) => (
+                    <div key={trip._id} className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex items-center">
+                          <div className="p-2 rounded-lg mr-3 bg-green-100">
+                            <CheckCircle className="h-5 w-5 text-green-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-gray-900 capitalize">{trip.type} - Completed</p>
+                            <p className="text-xs text-gray-500">{new Date(trip.updatedAt || trip.createdAt).toLocaleString()}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-lg font-bold text-gray-900">GMD {trip.price?.amount || 0}</p>
+                          <p className="text-xs text-gray-500">Earned</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
+                        <p className="truncate"><span className="font-medium text-gray-400 mr-1">From:</span> {trip.pickupLocation?.address}</p>
+                        <p className="truncate"><span className="font-medium text-gray-400 mr-1">To:</span> {trip.destinationLocation?.address}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <CheckCircle className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500">No completed rides yet</p>
                 </div>
               )}
+            </div>
+          )}
 
-              {/* Recent Trips */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Trips</h3>
-                <div className="text-center py-8">
-                  <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500">Trip history coming soon</p>
+          {/* Cancelled Rides Tab */}
+          {activeTab === 'cancelled' && (
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Cancelled Rides</h3>
+              {cancelledRides.length > 0 ? (
+                <div className="space-y-4">
+                  {cancelledRides.map((trip) => (
+                    <div key={trip._id} className="border border-red-50 rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex items-center">
+                          <div className="p-2 rounded-lg mr-3 bg-red-100">
+                            <XCircle className="h-5 w-5 text-red-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-gray-900 capitalize">{trip.type} - Cancelled</p>
+                            <p className="text-xs text-gray-500">{new Date(trip.updatedAt || trip.createdAt).toLocaleString()}</p>
+                          </div>
+                        </div>
+                        {trip.cancellation?.reason && (
+                          <div className="text-right">
+                            <span className="inline-block px-2 py-1 rounded text-[10px] font-bold bg-red-50 text-red-700 border border-red-100">
+                              REASON: {trip.cancellation.reason}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600 opacity-60">
+                        <p className="truncate"><span className="font-medium mr-1">From:</span> {trip.pickupLocation?.address}</p>
+                        <p className="truncate"><span className="font-medium mr-1">To:</span> {trip.destinationLocation?.address}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
+              ) : (
+                <div className="text-center py-12">
+                  <XCircle className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500">No cancelled rides</p>
+                </div>
+              )}
             </div>
           )}
 
@@ -645,6 +1008,52 @@ const DriverDashboard = () => {
       </div>
 
       <Footer />
+
+      {/* Cancellation Modal */}
+      {showCancelModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+          <div className="relative mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <h3 className="text-lg leading-6 font-medium text-gray-900">Cancel Ride</h3>
+              <div className="mt-2 px-7 py-3">
+                <p className="text-sm text-gray-500 mb-4">
+                  Please provide a reason for cancelling this ride. This will be shared with the admin.
+                </p>
+                <form onSubmit={handleCancelBooking}>
+                  <textarea
+                    className="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    rows="4"
+                    placeholder="Enter cancellation reason..."
+                    value={cancelReason}
+                    onChange={(e) => setCancelReason(e.target.value)}
+                    required
+                  ></textarea>
+                  <div className="flex justify-end mt-4 space-x-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowCancelModal(false);
+                        setCancellingBooking(null);
+                        setCancelReason('');
+                      }}
+                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                    >
+                      Close
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={cancelLoading}
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                    >
+                      {cancelLoading ? 'Cancelling...' : 'Confirm Cancel'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

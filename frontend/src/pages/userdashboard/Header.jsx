@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, LogOut, Menu, Shield, RefreshCw } from 'lucide-react';
+import { Bell, LogOut, Menu, Shield, RefreshCw, Car } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
@@ -9,6 +9,10 @@ const Header = ({ user, logout, onMenuClick }) => {
 
   const handleAdminClick = () => {
     navigate('/admin');
+  };
+
+  const handleDriverClick = () => {
+    navigate('/dashboard');
   };
 
   const handleRefreshUser = async () => {
@@ -36,9 +40,16 @@ const Header = ({ user, logout, onMenuClick }) => {
 
             <div>
               <h1 className="text-lg lg:text-xl font-bold text-gray-900">TownTripHub</h1>
-              <p className="mt-1 text-xs lg:text-sm text-gray-600">
-                Welcome back, {user?.name}
-              </p>
+              <div className="flex items-center mt-1">
+                <p className="text-xs lg:text-sm text-gray-600">
+                  Welcome back, {user?.name ? user.name.split(' ')[0] : user?.email?.split('@')[0]}
+                </p>
+                {user?.role === 'driver' && (
+                  <span className="ml-2 bg-green-100 text-green-800 text-[10px] lg:text-xs px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                    Driver
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
@@ -52,6 +63,18 @@ const Header = ({ user, logout, onMenuClick }) => {
               >
                 <Shield className="h-4 w-4 mr-2" />
                 <span className="hidden sm:inline">Admin</span>
+              </button>
+            )}
+
+            {/* Driver button - only show for driver users */}
+            {user?.role === 'driver' && (
+              <button
+                onClick={handleDriverClick}
+                className="flex items-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                title="Driver Dashboard"
+              >
+                <Car className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Driver</span>
               </button>
             )}
 
