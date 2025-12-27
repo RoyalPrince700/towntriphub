@@ -1,0 +1,18 @@
+name: Keep Render Backend Alive
+
+on:
+  schedule:
+    # Run every 10 minutes
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  ping-backend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ping Render Backend
+        run: |
+          echo "Pinging Render backend to keep it alive..."
+          curl -f -s https://towntriphub.onrender.com/ || echo "Ping failed, but continuing..."
+          echo "Ping attempt completed"
