@@ -23,14 +23,16 @@ const createReview = asyncHandler(async (req, res) => {
   // Check if booking exists and belongs to user
   const booking = await Booking.findById(bookingId)
     .populate('driver', 'user')
+    .populate('logisticsPersonnel', 'user')
     .populate('user', 'name email');
 
   if (!booking) {
     return res.status(404).json({ message: 'Booking not found' });
   }
 
-  // Check if user owns this booking
-  if (booking.user.toString() !== req.user.id) {
+  // Check if user owns this booking (handle populated or ObjectId)
+  const bookingOwnerId = booking.user?._id ? booking.user._id.toString() : booking.user.toString();
+  if (bookingOwnerId !== req.user.id) {
     return res.status(403).json({ message: 'Not authorized to review this booking' });
   }
 
@@ -47,10 +49,16 @@ const createReview = asyncHandler(async (req, res) => {
 
   // Determine reviewer and reviewee based on user role
   const reviewer = req.user.id;
-  const reviewee = booking.driver ? booking.driver.user.toString() : null;
+  let reviewee = null;
+  
+  if (booking.driver) {
+    reviewee = booking.driver.user.toString();
+  } else if (booking.logisticsPersonnel) {
+    reviewee = booking.logisticsPersonnel.user.toString();
+  }
 
   if (!reviewee) {
-    return res.status(400).json({ message: 'No driver assigned to this booking' });
+    return res.status(400).json({ message: 'No driver or logistics personnel assigned to this booking' });
   }
 
   // Create review
@@ -83,8 +91,13 @@ const getUserReviews = asyncHandler(async (req, res) => {
   const { userId } = req.params;
   const { page = 1, limit = 10, type } = req.query;
 
-  // Users can only see their own reviews or admins can see all
-  if (req.user.id !== userId && req.user.role !== 'admin') {
+  // Users can view their own reviews, admins can view all, and riders can view driver reviews
+  const targetUser = await User.findById(userId).select('role');
+  const isSelf = req.user.id === userId;
+  const isAdmin = req.user.role === 'admin';
+  const isDriverPublicProfile = targetUser && targetUser.role === 'driver';
+
+  if (!isSelf && !isAdmin && !isDriverPublicProfile) {
     return res.status(403).json({ message: 'Not authorized to view these reviews' });
   }
 

@@ -18,8 +18,10 @@ import {
   Power,
   Settings,
   BarChart3,
-  Calendar
+  Calendar,
+  MessageSquare
 } from 'lucide-react';
+import { getUserReviews } from '../services/reviewService';
 
 const DriverDashboard = () => {
   const { user } = useAuth();
@@ -35,6 +37,9 @@ const DriverDashboard = () => {
   const [cancellingBooking, setCancellingBooking] = useState(null);
   const [cancelReason, setCancelReason] = useState('');
   const [cancelLoading, setCancelLoading] = useState(false);
+  const [driverReviews, setDriverReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewsError, setReviewsError] = useState(null);
 
   useEffect(() => {
     if (user?.role !== 'driver') {
@@ -43,6 +48,12 @@ const DriverDashboard = () => {
     }
     fetchDriverData();
   }, [user, navigate]);
+
+  useEffect(() => {
+    if (activeTab === 'reviews' && driverProfile) {
+      fetchDriverReviews();
+    }
+  }, [activeTab, driverProfile]);
 
   const fetchDriverData = async () => {
     try {
@@ -98,6 +109,29 @@ const DriverDashboard = () => {
       console.error('Error fetching driver data:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchDriverReviews = async () => {
+    if (!driverProfile) return;
+
+    const revieweeId = driverProfile.user?._id || driverProfile.user;
+    if (!revieweeId) return;
+
+    try {
+      setReviewsLoading(true);
+      setReviewsError(null);
+      const response = await getUserReviews(revieweeId, { type: 'user_to_driver', limit: 20 });
+      if (response.success) {
+        setDriverReviews(response.data);
+      } else {
+        setReviewsError(response.message || 'Unable to load reviews');
+      }
+    } catch (err) {
+      console.error('Error fetching driver reviews:', err);
+      setReviewsError(err.message);
+    } finally {
+      setReviewsLoading(false);
     }
   };
 
@@ -380,6 +414,7 @@ const DriverDashboard = () => {
               { id: 'pending', label: 'Accepted Rides', icon: Navigation },
               { id: 'completed', label: 'Completed Rides', icon: CheckCircle },
               { id: 'cancelled', label: 'Cancelled Rides', icon: XCircle },
+              { id: 'reviews', label: 'Reviews', icon: MessageSquare },
               { id: 'earnings', label: 'Earnings', icon: DollarSign },
               { id: 'profile', label: 'Profile', icon: Settings },
             ].map((tab) => (
@@ -485,7 +520,7 @@ const DriverDashboard = () => {
                           </div>
                         </div>
                         <p className={`text-sm font-bold ${trip.status === 'completed' ? 'text-gray-900' : 'text-red-400'}`}>
-                          {trip.status === 'completed' ? `GMD ${trip.price?.amount}` : 'Cancelled'}
+                          {trip.status === 'completed' ? (trip.price?.amount !== undefined ? `GMD ${trip.price.amount}` : 'GMD 0') : 'Cancelled'}
                         </p>
                       </div>
                     ))}
@@ -706,7 +741,7 @@ const DriverDashboard = () => {
                             <p className="text-sm font-bold text-gray-900">{ride.user?.name}</p>
                             <p className="text-sm text-indigo-600 mt-1">{ride.user?.phoneNumber || 'N/A'}</p>
                             <div className="mt-4 pt-4 border-t border-gray-100">
-                              <p className="text-sm font-bold text-green-600 text-xl">GMD {ride.price?.amount}</p>
+                              <p className="text-sm font-bold text-green-600 text-xl">GMD {ride.price?.amount || '0'}</p>
                             </div>
                           </div>
                         </div>
@@ -847,6 +882,75 @@ const DriverDashboard = () => {
                 <div className="text-center py-12">
                   <XCircle className="h-12 w-12 text-gray-300 mx-auto mb-3" />
                   <p className="text-gray-500">No cancelled rides</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Reviews Tab */}
+          {activeTab === 'reviews' && (
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Driver Reviews</h3>
+                  <p className="text-sm text-gray-500">
+                    See what riders are saying about your completed trips.
+                  </p>
+                </div>
+                {driverProfile?.rating && (
+                  <div className="flex items-center bg-yellow-50 text-yellow-700 px-3 py-2 rounded-lg">
+                    <Star className="h-5 w-5 mr-2" />
+                    <div>
+                      <p className="text-sm font-bold">
+                        {driverProfile.rating.average?.toFixed(1) || '0.0'}
+                      </p>
+                      <p className="text-[11px] text-yellow-700">
+                        {driverProfile.rating.totalRatings || 0} reviews
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {reviewsLoading ? (
+                <div className="py-12 text-center">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mx-auto mb-3"></div>
+                  <p className="text-gray-500 text-sm">Loading reviews...</p>
+                </div>
+              ) : reviewsError ? (
+                <div className="py-8 text-center text-red-600 text-sm">
+                  {reviewsError}
+                </div>
+              ) : driverReviews.length > 0 ? (
+                <div className="space-y-4">
+                  {driverReviews.map((review) => (
+                    <div key={review._id} className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center text-yellow-500">
+                          <Star className="h-4 w-4 fill-current" />
+                          <span className="ml-1 text-sm font-bold text-gray-900">{review.rating}</span>
+                        </div>
+                        <span className="text-xs text-gray-400">
+                          {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : ''}
+                        </span>
+                      </div>
+                      {review.comment && (
+                        <p className="text-sm text-gray-700 mt-2">{review.comment}</p>
+                      )}
+                      <div className="mt-3 text-xs text-gray-500 flex items-center justify-between">
+                        <span>Rider: {review.reviewer?.name || 'Anonymous'}</span>
+                        {review.booking?.destinationLocation?.address && (
+                          <span className="text-right line-clamp-1">
+                            Trip to {review.booking.destinationLocation.address}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-10 text-center text-gray-500 text-sm">
+                  No reviews yet. Complete trips to start collecting feedback.
                 </div>
               )}
             </div>

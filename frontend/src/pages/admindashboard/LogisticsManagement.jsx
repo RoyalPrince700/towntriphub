@@ -240,7 +240,7 @@ const LogisticsManagement = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
-                        {booking.price ? `D${booking.price.amount}` : 'Not set'}
+                        {booking.price?.amount ? `D${booking.price.amount}` : 'Not set'}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 const ReviewSchema = new mongoose.Schema(
   {
@@ -79,6 +80,9 @@ ReviewSchema.virtual('averageRating').get(function() {
 
   return ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
 });
+
+// Add pagination support for list endpoints
+ReviewSchema.plugin(mongoosePaginate);
 
 // Static method to get average rating for a user
 ReviewSchema.statics.getAverageRating = async function(userId, type = null) {

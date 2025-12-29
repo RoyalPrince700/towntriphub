@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Eye, AlertCircle, CreditCard, Shield, Star, Truck, User, X } from 'lucide-react';
+import { Eye, AlertCircle, CreditCard, Shield, Star, Truck, User, X, MessageSquare } from 'lucide-react';
 import { getAllDrivers, updateDriverApproval } from '../../services/adminService';
+import { getUserReviews } from '../../services/reviewService';
 
 const statusOptions = ['all', 'pending_approval', 'approved', 'rejected', 'suspended'];
 
@@ -22,6 +23,9 @@ const DriverManagement = () => {
   const [selectedDriver, setSelectedDriver] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [documentErrors, setDocumentErrors] = useState({});
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewsError, setReviewsError] = useState(null);
 
   useEffect(() => {
     fetchDrivers();
@@ -81,6 +85,35 @@ const DriverManagement = () => {
     }
   };
 
+  const closeDetailsModal = () => {
+    setSelectedDriver(null);
+    setShowDetailsModal(false);
+  };
+
+  const fetchDriverReviews = async (driver) => {
+    if (!driver?.user?._id) {
+      setReviews([]);
+      return;
+    }
+    try {
+      setReviewsLoading(true);
+      setReviewsError(null);
+      const response = await getUserReviews(driver.user._id, { limit: 5, type: 'user_to_driver' });
+      if (response?.success) {
+        setReviews(response.data || []);
+      } else if (Array.isArray(response?.data)) {
+        setReviews(response.data);
+      } else {
+        setReviews([]);
+      }
+    } catch (err) {
+      console.error('[DriverManagement] fetchDriverReviews error', err);
+      setReviewsError(err.message || 'Failed to load reviews');
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
+
   const openDetailsModal = (driver) => {
     console.log('[DriverManagement] opening details modal', {
       driverId: driver?._id,
@@ -89,11 +122,7 @@ const DriverManagement = () => {
     setSelectedDriver(driver);
     setDocumentErrors({});
     setShowDetailsModal(true);
-  };
-
-  const closeDetailsModal = () => {
-    setSelectedDriver(null);
-    setShowDetailsModal(false);
+    fetchDriverReviews(driver);
   };
 
   const getStatusBadge = (status) => {
@@ -125,15 +154,26 @@ const DriverManagement = () => {
         return (
           <tr key={driver._id} className="hover:bg-gray-50">
             <td className="px-6 py-4 whitespace-nowrap">
-              <div>
-                <div className="text-sm font-medium text-gray-900">
-                  {driver.user?.name || 'N/A'}
+              <div className="flex items-center">
+                <div className="flex-shrink-0 h-10 w-10">
+                  {driver.documents?.profilePhoto ? (
+                    <img className="h-10 w-10 rounded-full object-cover" src={driver.documents.profilePhoto} alt="" />
+                  ) : (
+                    <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                      <User className="h-6 w-6 text-gray-400" />
+                    </div>
+                  )}
                 </div>
-                <div className="text-sm text-gray-500">
-                  {driver.user?.email || 'N/A'}
-                </div>
-                <div className="text-sm text-gray-500">
-                  {driver.phoneNumber || 'No phone'}
+                <div className="ml-4">
+                  <div className="text-sm font-medium text-gray-900">
+                    {driver.user?.name || 'N/A'}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {driver.user?.email || 'N/A'}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {driver.phoneNumber || 'No phone'}
+                  </div>
                 </div>
               </div>
             </td>
@@ -218,6 +258,7 @@ const DriverManagement = () => {
   );
 
   const documentList = [
+    { label: 'Profile Photo', key: 'profilePhoto' },
     { label: 'Vehicle Front', key: 'vehicleFrontPhoto' },
     { label: 'Vehicle Side', key: 'vehicleSidePhoto' },
     { label: 'Vehicle Back', key: 'vehicleBackPhoto' },
@@ -433,6 +474,46 @@ const DriverManagement = () => {
                       </div>
                     </div>
                   </div>
+                </div>
+
+                <div className="mt-6">
+                  <h4 className="text-md font-semibold text-gray-800 mb-3 flex items-center">
+                    <MessageSquare className="h-4 w-4 mr-2 text-indigo-600" />
+                    Recent Rider Reviews
+                  </h4>
+
+                  {reviewsLoading ? (
+                    <div className="flex items-center space-x-2 text-sm text-gray-500">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600"></div>
+                      <span>Loading reviews...</span>
+                    </div>
+                  ) : reviewsError ? (
+                    <div className="text-sm text-red-600">{reviewsError}</div>
+                  ) : reviews.length > 0 ? (
+                    <div className="space-y-3">
+                      {reviews.map((review) => (
+                        <div key={review._id} className="border border-gray-200 rounded-lg p-3 bg-white">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center text-yellow-500">
+                              <Star className="h-4 w-4 fill-current" />
+                              <span className="ml-1 text-sm font-semibold text-gray-900">{review.rating}</span>
+                            </div>
+                            <span className="text-xs text-gray-400">
+                              {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : ''}
+                            </span>
+                          </div>
+                          {review.comment && (
+                            <p className="text-sm text-gray-700 mt-2 line-clamp-3">{review.comment}</p>
+                          )}
+                          <p className="text-xs text-gray-500 mt-2">
+                            By {review.reviewer?.name || 'Rider'}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500">No reviews yet for this driver.</p>
+                  )}
                 </div>
 
                 <div className="mt-6">

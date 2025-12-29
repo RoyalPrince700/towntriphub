@@ -58,21 +58,34 @@ const registerDriver = asyncHandler(async (req, res) => {
   } = req.body;
 
   // Check if user is already a driver
-  const existingDriver = await Driver.findOne({ user: req.user.id });
-  if (existingDriver) {
-    console.log('User already registered as driver');
-    return res.status(400).json({ message: 'User is already registered as a driver' });
+  let driver = await Driver.findOne({ user: req.user.id });
+  
+  if (driver) {
+    if (driver.status !== 'rejected') {
+      console.log('User already registered as driver with status:', driver.status);
+      return res.status(400).json({ message: 'User is already registered as a driver' });
+    }
+    // If rejected, we will update the existing profile
+    console.log('User has a rejected profile, allowing re-registration');
   }
 
-  // Check if license number is already taken
-  const existingLicense = await Driver.findOne({ licenseNumber: licenseNumber.toUpperCase() });
+  // Check if license number is already taken by ANOTHER driver
+  const licenseQuery = { licenseNumber: licenseNumber.toUpperCase() };
+  if (driver) {
+    licenseQuery._id = { $ne: driver._id };
+  }
+  const existingLicense = await Driver.findOne(licenseQuery);
   if (existingLicense) {
     console.log('License number already exists');
     return res.status(400).json({ message: 'License number is already registered' });
   }
 
-  // Check if vehicle plate number is already taken
-  const existingPlate = await Driver.findOne({ 'vehicle.plateNumber': vehicle.plateNumber.toUpperCase() });
+  // Check if vehicle plate number is already taken by ANOTHER driver
+  const plateQuery = { 'vehicle.plateNumber': vehicle.plateNumber.toUpperCase() };
+  if (driver) {
+    plateQuery._id = { $ne: driver._id };
+  }
+  const existingPlate = await Driver.findOne(plateQuery);
   if (existingPlate) {
     console.log('Plate number already exists');
     return res.status(400).json({ message: 'Vehicle plate number is already registered' });
@@ -101,11 +114,15 @@ const registerDriver = asyncHandler(async (req, res) => {
     if (req.files.vehicleBackPhoto) {
       documents.vehicleBackPhoto = await uploadToCloudinary(req.files.vehicleBackPhoto, 'vehicle_back');
     }
+    if (req.files.profilePhoto) {
+      documents.profilePhoto = await uploadToCloudinary(req.files.profilePhoto, 'profile_photo');
+    }
   }
 
-  // Create driver profile
-  console.log('Creating driver profile...');
-  const driver = await Driver.create({
+  // Create or update driver profile
+  console.log(driver ? 'Updating rejected driver profile...' : 'Creating driver profile...');
+  
+  const driverData = {
     user: req.user.id,
     dateOfBirth,
     licenseNumber: licenseNumber.toUpperCase(),
@@ -121,11 +138,21 @@ const registerDriver = asyncHandler(async (req, res) => {
     },
     serviceAreas: serviceAreas || [],
     preferences: preferences || {},
-    documents,
+    documents: { ...driver?.documents, ...documents },
     status: 'pending_approval',
-  });
+    rejectionReason: null, // Clear rejection reason on re-submission
+  };
 
-  console.log('Driver created successfully:', driver._id);
+  if (driver) {
+    // Update existing rejected profile
+    Object.assign(driver, driverData);
+    await driver.save();
+  } else {
+    // Create new profile
+    driver = await Driver.create(driverData);
+  }
+
+  console.log('Driver profile processed successfully:', driver._id);
   const populatedDriver = await Driver.findById(driver._id)
     .populate('user', 'name email')
     .select('-__v');

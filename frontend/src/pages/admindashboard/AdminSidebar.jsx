@@ -1,4 +1,6 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import {
   BarChart3,
   Car,
@@ -9,10 +11,19 @@ import {
   Settings,
   Shield,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  LogOut
 } from 'lucide-react';
 
 const AdminSidebar = ({ activeTab, setActiveTab, isCollapsed, setIsCollapsed }) => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
   };
@@ -73,6 +84,25 @@ const AdminSidebar = ({ activeTab, setActiveTab, isCollapsed, setIsCollapsed }) 
             );
           })}
         </nav>
+      </div>
+
+      {/* Logout Option at Bottom */}
+      <div className={`border-t border-gray-100 transition-all duration-300 ${isCollapsed ? 'p-2' : 'p-4'}`}>
+        <button
+          onClick={handleLogout}
+          className={`w-full flex items-center text-left rounded-lg transition-all duration-300 ${
+            isCollapsed ? 'px-3 py-3 justify-center' : 'px-3 py-3'
+          } text-red-600 hover:bg-red-50 hover:text-red-700`}
+          title={isCollapsed ? "Logout" : undefined}
+        >
+          <LogOut className={`h-5 w-5 flex-shrink-0 ${isCollapsed ? '' : 'mr-3'}`} />
+          {!isCollapsed && (
+            <div className="opacity-100 transition-opacity duration-300">
+              <div className="font-medium">Logout</div>
+              <div className="text-xs text-red-400">Sign out of session</div>
+            </div>
+          )}
+        </button>
       </div>
     </div>
   );

@@ -1,7 +1,10 @@
 import React from 'react';
-import { Settings, Truck, Package, FileText, Phone, Mail } from 'lucide-react';
+import { Settings, Truck, Package, FileText, Phone, Mail, AlertCircle } from 'lucide-react';
 
-const Profile = ({ user }) => {
+const Profile = ({ user, profile, loading }) => {
+  const phone = profile?.phoneNumber || profile?.user?.phoneNumber || '—';
+  const serviceAreas = profile?.serviceAreas || [];
+
   return (
     <div className="bg-white rounded-lg shadow-lg p-4 lg:p-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
@@ -12,8 +15,20 @@ const Profile = ({ user }) => {
         </button>
       </div>
 
+      {loading && (
+        <div className="flex items-center text-sm text-gray-500 mb-4">
+          Loading profile...
+        </div>
+      )}
+
+      {!loading && !profile && (
+        <div className="flex items-center text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+          <AlertCircle className="h-4 w-4 mr-2 text-gray-400" />
+          No logistics profile found.
+        </div>
+      )}
+
       <div className="space-y-4 lg:space-y-6">
-        {/* Personal Information */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
@@ -27,7 +42,7 @@ const Profile = ({ user }) => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-            <p className="text-gray-900 p-2 bg-gray-50 rounded-lg">+220 123 4567</p>
+            <p className="text-gray-900 p-2 bg-gray-50 rounded-lg">{phone}</p>
           </div>
 
           <div>
@@ -36,138 +51,83 @@ const Profile = ({ user }) => {
           </div>
         </div>
 
-        {/* Logistics License Information */}
         <div className="border-t pt-6 mt-6">
           <h3 className="text-base font-medium text-gray-900 mb-4 flex items-center">
             <FileText className="h-5 w-5 mr-2 text-blue-600" />
-            Logistics License Information
+            Logistics Details
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">License Number</label>
-              <p className="text-gray-900 p-2 bg-gray-50 rounded-lg">LOG-2024-005678</p>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Business Name</label>
+              <p className="text-gray-900 p-2 bg-gray-50 rounded-lg">{profile?.businessName || '—'}</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">License Type</label>
-              <p className="text-gray-900 p-2 bg-gray-50 rounded-lg">Delivery Personnel</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
-              <p className="text-gray-900 p-2 bg-gray-50 rounded-lg">March 2026</p>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Business Address</label>
+              <p className="text-gray-900 p-2 bg-gray-50 rounded-lg">
+                {profile?.businessAddress?.address || '—'}
+              </p>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                Valid
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 capitalize">
+                {profile?.status || 'pending'}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Vehicle Information */}
         <div className="border-t pt-6 mt-6">
           <h3 className="text-base font-medium text-gray-900 mb-4 flex items-center">
             <Truck className="h-5 w-5 mr-2 text-green-600" />
-            Delivery Vehicle Information
+            Service Areas
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Type</label>
-              <p className="text-gray-900 p-2 bg-gray-50 rounded-lg">Motorcycle</p>
+          {serviceAreas.length === 0 ? (
+            <p className="text-sm text-gray-600">No service areas added yet.</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {serviceAreas.map((area) => (
+                <span key={area} className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">
+                  {area}
+                </span>
+              ))}
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Model</label>
-              <p className="text-gray-900 p-2 bg-gray-50 rounded-lg">Honda CB300R</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">License Plate</label>
-              <p className="text-gray-900 p-2 bg-gray-50 rounded-lg">DEL 456 G</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Color</label>
-              <p className="text-gray-900 p-2 bg-gray-50 rounded-lg">Red</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
-              <p className="text-gray-900 p-2 bg-gray-50 rounded-lg">2021</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Capacity</label>
-              <p className="text-gray-900 p-2 bg-gray-50 rounded-lg">50kg</p>
-            </div>
-          </div>
+          )}
         </div>
 
-        {/* Delivery Areas */}
+        {profile?.emergencyContact && (
+          <div className="border-t pt-6 mt-6">
+            <h3 className="text-base font-medium text-gray-900 mb-4 flex items-center">
+              <Package className="h-5 w-5 mr-2 text-purple-600" />
+              Emergency Contact
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <p className="text-gray-900 p-2 bg-gray-50 rounded-lg">{profile.emergencyContact.name}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                <p className="text-gray-900 p-2 bg-gray-50 rounded-lg">{profile.emergencyContact.phone}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="border-t pt-6 mt-6">
           <h3 className="text-base font-medium text-gray-900 mb-4 flex items-center">
-            <Package className="h-5 w-5 mr-2 text-purple-600" />
-            Delivery Areas
+            <Mail className="h-5 w-5 mr-2 text-indigo-600" />
+            Contact
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Primary Areas</label>
-              <div className="space-y-1">
-                <p className="text-gray-900 p-2 bg-gray-50 rounded-lg">Serrekunda</p>
-                <p className="text-gray-900 p-2 bg-gray-50 rounded-lg">Kairaba Avenue</p>
-              </div>
+          <div className="space-y-2 text-sm text-gray-700">
+            <div className="flex items-center">
+              <Mail className="h-4 w-4 mr-2" />
+              {user?.email}
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Secondary Areas</label>
-              <div className="space-y-1">
-                <p className="text-gray-900 p-2 bg-gray-50 rounded-lg">Brikama</p>
-                <p className="text-gray-900 p-2 bg-gray-50 rounded-lg">Bakau</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Account Preferences */}
-        <div className="border-t pt-6 mt-6">
-          <h3 className="text-base font-medium text-gray-900 mb-4">Account Preferences</h3>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <span className="text-sm text-gray-700">Email Notifications</span>
-              <div className="w-10 h-5 bg-indigo-600 rounded-full relative">
-                <div className="w-4 h-4 bg-white rounded-full absolute right-0.5 top-0.5"></div>
-              </div>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <span className="text-sm text-gray-700">SMS Notifications</span>
-              <div className="w-10 h-5 bg-indigo-600 rounded-full relative">
-                <div className="w-4 h-4 bg-white rounded-full absolute right-0.5 top-0.5"></div>
-              </div>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <span className="text-sm text-gray-700">Delivery Request Alerts</span>
-              <div className="w-10 h-5 bg-indigo-600 rounded-full relative">
-                <div className="w-4 h-4 bg-white rounded-full absolute right-0.5 top-0.5"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Emergency Contact */}
-        <div className="border-t pt-6 mt-6">
-          <h3 className="text-base font-medium text-gray-900 mb-4">Emergency Contact</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Contact Name</label>
-              <p className="text-gray-900 p-2 bg-gray-50 rounded-lg">Jane Smith</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Contact Phone</label>
-              <p className="text-gray-900 p-2 bg-gray-50 rounded-lg">+220 987 6543</p>
+            <div className="flex items-center">
+              <Phone className="h-4 w-4 mr-2" />
+              {phone}
             </div>
           </div>
         </div>

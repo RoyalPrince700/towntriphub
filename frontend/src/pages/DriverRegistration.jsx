@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -25,6 +25,7 @@ const DriverRegistration = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     // Personal Information
+    fullName: user?.name || '',
     dateOfBirth: '',
     phoneNumber: '',
     licenseNumber: '',
@@ -65,12 +66,81 @@ const DriverRegistration = () => {
       vehicleFrontPhoto: null,
       vehicleSidePhoto: null,
       vehicleBackPhoto: null,
+      profilePhoto: null,
     },
   });
 
   const [errors, setErrors] = useState({});
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+  useEffect(() => {
+    const fetchExistingProfile = async () => {
+      if (!token) return;
+      
+      try {
+        const response = await fetch(`${API_URL}/drivers/profile`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        
+        const data = await response.json();
+        if (response.ok && data.success && data.data) {
+          const profile = data.data;
+          // Only pre-fill if it was rejected
+          if (profile.status === 'rejected') {
+            setFormData({
+              fullName: profile.fullName || user?.name || '',
+              dateOfBirth: profile.dateOfBirth ? new Date(profile.dateOfBirth).toISOString().split('T')[0] : '',
+              phoneNumber: profile.phoneNumber || '',
+              licenseNumber: profile.licenseNumber || '',
+              licenseExpiryDate: profile.licenseExpiryDate ? new Date(profile.licenseExpiryDate).toISOString().split('T')[0] : '',
+              emergencyContact: {
+                name: profile.emergencyContact?.name || '',
+                phone: profile.emergencyContact?.phone || '',
+                relationship: profile.emergencyContact?.relationship || '',
+              },
+              vehicle: {
+                make: profile.vehicle?.make || '',
+                model: profile.vehicle?.model || '',
+                year: profile.vehicle?.year || '',
+                color: profile.vehicle?.color || '',
+                plateNumber: profile.vehicle?.plateNumber || '',
+                vehicleType: profile.vehicle?.vehicleType || 'car',
+                seatingCapacity: profile.vehicle?.seatingCapacity || '',
+                hasAC: profile.vehicle?.hasAC || false,
+                registrationNumber: profile.vehicle?.registrationNumber || '',
+                registrationExpiry: profile.vehicle?.registrationExpiry ? new Date(profile.vehicle?.registrationExpiry).toISOString().split('T')[0] : '',
+                insuranceNumber: profile.vehicle?.insuranceNumber || '',
+                insuranceExpiry: profile.vehicle?.insuranceExpiry ? new Date(profile.vehicle?.insuranceExpiry).toISOString().split('T')[0] : '',
+              },
+              serviceAreas: profile.serviceAreas || [],
+              preferences: {
+                acceptsDeliveries: profile.preferences?.acceptsDeliveries ?? true,
+                acceptsRides: profile.preferences?.acceptsRides ?? true,
+                operatingHours: {
+                  start: profile.preferences?.operatingHours?.start || '06:00',
+                  end: profile.preferences?.operatingHours?.end || '22:00',
+                },
+                languages: profile.preferences?.languages || ['English'],
+              },
+              documents: {
+                vehicleFrontPhoto: null,
+                vehicleSidePhoto: null,
+                vehicleBackPhoto: null,
+                profilePhoto: null,
+              },
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching existing profile:', err);
+      }
+    };
+
+    fetchExistingProfile();
+  }, [token, API_URL]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -180,6 +250,10 @@ const DriverRegistration = () => {
 
     switch (step) {
       case 1: // Personal Information
+        if (!formData.fullName.trim()) {
+          newErrors.fullName = 'Full name is required';
+        }
+
         if (!formData.dateOfBirth) newErrors.dateOfBirth = 'Date of birth is required';
         else {
           const birthDate = new Date(formData.dateOfBirth);
@@ -263,6 +337,9 @@ const DriverRegistration = () => {
         }
         if (!formData.documents.vehicleBackPhoto) {
           newErrors['documents.vehicleBackPhoto'] = 'Back view photo is required';
+        }
+        if (!formData.documents.profilePhoto) {
+          newErrors['documents.profilePhoto'] = 'Your profile photo is required';
         }
         break;
 
@@ -440,18 +517,39 @@ const DriverRegistration = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.fullName}
+                      onChange={(e) => handleInputChange('fullName', e.target.value)}
+                      placeholder="Enter your full name"
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                        errors.fullName ? 'border-red-300' : 'border-gray-300'
+                      }`}
+                    />
+                    {errors.fullName && (
+                      <p className="mt-1 text-sm text-red-600">{errors.fullName}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Date of Birth *
                     </label>
                     <input
                       type="date"
                       value={formData.dateOfBirth}
                       onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                      placeholder="mm/dd/yyyy"
                       className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
                         errors.dateOfBirth ? 'border-red-300' : 'border-gray-300'
                       }`}
                     />
-                    {errors.dateOfBirth && (
+                    {errors.dateOfBirth ? (
                       <p className="mt-1 text-sm text-red-600">{errors.dateOfBirth}</p>
+                    ) : (
+                      <p className="mt-1 text-xs text-gray-500">mm/dd/yyyy</p>
                     )}
                   </div>
 
@@ -499,12 +597,15 @@ const DriverRegistration = () => {
                       type="date"
                       value={formData.licenseExpiryDate}
                       onChange={(e) => handleInputChange('licenseExpiryDate', e.target.value)}
+                      placeholder="mm/dd/yyyy"
                       className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
                         errors.licenseExpiryDate ? 'border-red-300' : 'border-gray-300'
                       }`}
                     />
-                    {errors.licenseExpiryDate && (
+                    {errors.licenseExpiryDate ? (
                       <p className="mt-1 text-sm text-red-600">{errors.licenseExpiryDate}</p>
+                    ) : (
+                      <p className="mt-1 text-xs text-gray-500">mm/dd/yyyy</p>
                     )}
                   </div>
                 </div>
@@ -883,83 +984,112 @@ const DriverRegistration = () => {
             {/* Step 4: Vehicle Photos */}
             {currentStep === 4 && (
               <div className="space-y-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-6">Vehicle Photos</h3>
-                <p className="text-gray-600 mb-6">Please upload clear photos of your vehicle from the following angles:</p>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {/* Front View */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Front View *
-                    </label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-indigo-400 transition-colors">
+                <h3 className="text-xl font-semibold text-gray-900 mb-6">Photos & Documents</h3>
+                
+                <div className="mb-8">
+                  <h4 className="text-lg font-medium text-gray-900 mb-4">Your Profile Photo</h4>
+                  <p className="text-gray-600 mb-4">Please upload a clear, professional photo of yourself. This will be visible to passengers.</p>
+                  <div className="max-w-xs">
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-indigo-400 transition-colors">
                       <input
                         type="file"
                         accept="image/*"
-                        onChange={(e) => handleFileChange('vehicleFrontPhoto', e.target.files[0])}
+                        onChange={(e) => handleFileChange('profilePhoto', e.target.files[0])}
                         className="hidden"
-                        id="vehicleFrontPhoto"
+                        id="profilePhoto"
                       />
-                      <label htmlFor="vehicleFrontPhoto" className="cursor-pointer">
-                        <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                        <p className="text-xs text-gray-600 truncate">
-                          {formData.documents.vehicleFrontPhoto ? formData.documents.vehicleFrontPhoto.name : 'Click to upload front view'}
+                      <label htmlFor="profilePhoto" className="cursor-pointer">
+                        <User className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                        <p className="text-sm text-gray-600">
+                          {formData.documents.profilePhoto ? formData.documents.profilePhoto.name : 'Click to upload your photo'}
                         </p>
                       </label>
                     </div>
-                    {errors['documents.vehicleFrontPhoto'] && (
-                      <p className="mt-1 text-sm text-red-600">{errors['documents.vehicleFrontPhoto']}</p>
+                    {errors['documents.profilePhoto'] && (
+                      <p className="mt-1 text-sm text-red-600">{errors['documents.profilePhoto']}</p>
                     )}
                   </div>
+                </div>
 
-                  {/* Side View */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Side View *
-                    </label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-indigo-400 transition-colors">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleFileChange('vehicleSidePhoto', e.target.files[0])}
-                        className="hidden"
-                        id="vehicleSidePhoto"
-                      />
-                      <label htmlFor="vehicleSidePhoto" className="cursor-pointer">
-                        <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                        <p className="text-xs text-gray-600 truncate">
-                          {formData.documents.vehicleSidePhoto ? formData.documents.vehicleSidePhoto.name : 'Click to upload side view'}
-                        </p>
-                      </label>
-                    </div>
-                    {errors['documents.vehicleSidePhoto'] && (
-                      <p className="mt-1 text-sm text-red-600">{errors['documents.vehicleSidePhoto']}</p>
-                    )}
-                  </div>
+                <div className="border-t pt-8">
+                  <h4 className="text-lg font-medium text-gray-900 mb-4">Vehicle Photos</h4>
+                  <p className="text-gray-600 mb-6">Please upload clear photos of your vehicle from the following angles:</p>
 
-                  {/* Back View */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Back View *
-                    </label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-indigo-400 transition-colors">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleFileChange('vehicleBackPhoto', e.target.files[0])}
-                        className="hidden"
-                        id="vehicleBackPhoto"
-                      />
-                      <label htmlFor="vehicleBackPhoto" className="cursor-pointer">
-                        <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                        <p className="text-xs text-gray-600 truncate">
-                          {formData.documents.vehicleBackPhoto ? formData.documents.vehicleBackPhoto.name : 'Click to upload back view'}
-                        </p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Front View */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Front View *
                       </label>
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-indigo-400 transition-colors">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleFileChange('vehicleFrontPhoto', e.target.files[0])}
+                          className="hidden"
+                          id="vehicleFrontPhoto"
+                        />
+                        <label htmlFor="vehicleFrontPhoto" className="cursor-pointer">
+                          <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-xs text-gray-600 truncate">
+                            {formData.documents.vehicleFrontPhoto ? formData.documents.vehicleFrontPhoto.name : 'Click to upload front view'}
+                          </p>
+                        </label>
+                      </div>
+                      {errors['documents.vehicleFrontPhoto'] && (
+                        <p className="mt-1 text-sm text-red-600">{errors['documents.vehicleFrontPhoto']}</p>
+                      )}
                     </div>
-                    {errors['documents.vehicleBackPhoto'] && (
-                      <p className="mt-1 text-sm text-red-600">{errors['documents.vehicleBackPhoto']}</p>
-                    )}
+
+                    {/* Side View */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Side View *
+                      </label>
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-indigo-400 transition-colors">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleFileChange('vehicleSidePhoto', e.target.files[0])}
+                          className="hidden"
+                          id="vehicleSidePhoto"
+                        />
+                        <label htmlFor="vehicleSidePhoto" className="cursor-pointer">
+                          <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-xs text-gray-600 truncate">
+                            {formData.documents.vehicleSidePhoto ? formData.documents.vehicleSidePhoto.name : 'Click to upload side view'}
+                          </p>
+                        </label>
+                      </div>
+                      {errors['documents.vehicleSidePhoto'] && (
+                        <p className="mt-1 text-sm text-red-600">{errors['documents.vehicleSidePhoto']}</p>
+                      )}
+                    </div>
+
+                    {/* Back View */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Back View *
+                      </label>
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-indigo-400 transition-colors">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleFileChange('vehicleBackPhoto', e.target.files[0])}
+                          className="hidden"
+                          id="vehicleBackPhoto"
+                        />
+                        <label htmlFor="vehicleBackPhoto" className="cursor-pointer">
+                          <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-xs text-gray-600 truncate">
+                            {formData.documents.vehicleBackPhoto ? formData.documents.vehicleBackPhoto.name : 'Click to upload back view'}
+                          </p>
+                        </label>
+                      </div>
+                      {errors['documents.vehicleBackPhoto'] && (
+                        <p className="mt-1 text-sm text-red-600">{errors['documents.vehicleBackPhoto']}</p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -974,6 +1104,7 @@ const DriverRegistration = () => {
                   <div className="bg-gray-50 rounded-lg p-4">
                     <h4 className="font-medium text-gray-900 mb-3">Personal Information</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div><span className="text-gray-600">Full Name:</span> {formData.fullName}</div>
                       <div><span className="text-gray-600">Date of Birth:</span> {formData.dateOfBirth}</div>
                       <div><span className="text-gray-600">Phone:</span> {formData.phoneNumber}</div>
                       <div><span className="text-gray-600">License Number:</span> {formData.licenseNumber}</div>
@@ -1006,11 +1137,12 @@ const DriverRegistration = () => {
                   </div>
 
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-medium text-gray-900 mb-3">Vehicle Photos</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                      <div><span className="text-gray-600">Front:</span> {formData.documents.vehicleFrontPhoto?.name || 'Uploaded'}</div>
-                      <div><span className="text-gray-600">Side:</span> {formData.documents.vehicleSidePhoto?.name || 'Uploaded'}</div>
-                      <div><span className="text-gray-600">Back:</span> {formData.documents.vehicleBackPhoto?.name || 'Uploaded'}</div>
+                    <h4 className="font-medium text-gray-900 mb-3">Photos & Documents</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div><span className="text-gray-600">Profile Photo:</span> {formData.documents.profilePhoto?.name || 'Uploaded'}</div>
+                      <div><span className="text-gray-600">Vehicle Front:</span> {formData.documents.vehicleFrontPhoto?.name || 'Uploaded'}</div>
+                      <div><span className="text-gray-600">Vehicle Side:</span> {formData.documents.vehicleSidePhoto?.name || 'Uploaded'}</div>
+                      <div><span className="text-gray-600">Vehicle Back:</span> {formData.documents.vehicleBackPhoto?.name || 'Uploaded'}</div>
                     </div>
                   </div>
                 </div>

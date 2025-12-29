@@ -11,11 +11,13 @@ import AuthCallback from './pages/AuthCallback.jsx';
 import UserDashboard from './pages/UserDashboard.jsx';
 import DriverDashboard from './pages/DriverDashboard.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
+import LogisticsDashboard from './pages/LogisticsDashboard.jsx';
 import DriverRegistration from './pages/DriverRegistration.jsx';
 import LogisticsPersonnelRegistration from './pages/LogisticsPersonnelRegistration.jsx';
 import { Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
+import BookingDetails from './pages/BookingDetails.jsx';
 
 // Component to route users to appropriate dashboard based on role
 function RoleBasedDashboard() {
@@ -30,9 +32,7 @@ function RoleBasedDashboard() {
   }
 
   if (user?.role === 'logistics') {
-    // For now, redirect logistics personnel to user dashboard
-    // TODO: Create dedicated logistics dashboard
-    return <UserDashboard />;
+    return <LogisticsDashboard />;
   }
 
   // Default to user dashboard for user role
@@ -54,6 +54,14 @@ function App() {
           <Route path="/verify-email-instructions" element={<VerifyEmailInstructions />} />
           <Route path="/driver/register" element={<DriverRegistration />} />
           <Route path="/logistics/register" element={<LogisticsPersonnelRegistration />} />
+          <Route
+            path="/bookings/:id"
+            element={
+              <ProtectedRoute roles={["user", "admin", "driver", "logistics"]}>
+                <BookingDetails />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Dashboard routes - role-based routing */}
           <Route
@@ -64,6 +72,15 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+        <Route
+          path="/logistics/dashboard"
+          element={
+            <ProtectedRoute roles={["logistics"]}>
+              <LogisticsDashboard />
+            </ProtectedRoute>
+          }
+        />
 
           {/* Direct admin route */}
           <Route

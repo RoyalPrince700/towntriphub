@@ -131,15 +131,26 @@ const LogisticsPersonnelManagement = () => {
         return (
           <tr key={personnel._id} className="hover:bg-gray-50">
             <td className="px-6 py-4 whitespace-nowrap">
-              <div>
-                <div className="text-sm font-medium text-gray-900">
-                  {personnel.user?.name || 'N/A'}
+              <div className="flex items-center">
+                <div className="flex-shrink-0 h-10 w-10">
+                  {personnel.documents?.profilePhoto ? (
+                    <img className="h-10 w-10 rounded-full object-cover" src={personnel.documents.profilePhoto} alt="" />
+                  ) : (
+                    <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                      <User className="h-6 w-6 text-gray-400" />
+                    </div>
+                  )}
                 </div>
-                <div className="text-sm text-gray-500">
-                  {personnel.user?.email || 'N/A'}
-                </div>
-                <div className="text-sm text-gray-500">
-                  {personnel.phoneNumber || 'No phone'}
+                <div className="ml-4">
+                  <div className="text-sm font-medium text-gray-900">
+                    {personnel.user?.name || 'N/A'}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {personnel.user?.email || 'N/A'}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {personnel.phoneNumber || 'No phone'}
+                  </div>
                 </div>
               </div>
             </td>
@@ -474,13 +485,10 @@ const LogisticsPersonnelManagement = () => {
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                     {[
                       { label: 'Business License', key: 'businessLicense' },
-                      { label: 'Tax Certificate', key: 'taxCertificate' },
-                      { label: 'Insurance Policy', key: 'insuranceDocument' },
                       { label: 'Vehicle Reg.', key: 'vehicleRegistration' },
                       { label: 'Vehicle Front', key: 'vehicleFrontPhoto' },
                       { label: 'Vehicle Side', key: 'vehicleSidePhoto' },
                       { label: 'Vehicle Back', key: 'vehicleBackPhoto' },
-                      { label: 'Business Photo', key: 'businessPhoto' },
                       { label: 'Profile Photo', key: 'profilePhoto' },
                     ].map((doc) => (
                       <div key={doc.key} className="border rounded-lg p-2 flex flex-col items-center">

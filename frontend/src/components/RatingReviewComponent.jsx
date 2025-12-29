@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { Star, MessageSquare, ThumbsUp } from 'lucide-react';
+import { createReview } from '../services/reviewService';
+import { useAuth } from '../context/AuthContext';
 
 const RatingReviewComponent = ({ booking, onSubmit, onSkip }) => {
+  const { user } = useAuth();
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState('');
@@ -22,24 +25,50 @@ const RatingReviewComponent = ({ booking, onSubmit, onSkip }) => {
       return;
     }
 
+    // Defensive guard: only allow booking owner to submit
+    if (booking?.user && user?._id && booking.user?.toString?.() !== user._id.toString()) {
+      alert('You are not authorized to review this booking. Please ensure you are logged in with the account that created it.');
+      return;
+    }
+
     setSubmitting(true);
     try {
+      const cleanedFeedback = Object.entries(feedback).reduce((acc, [key, value]) => {
+        if (value && value > 0) {
+          acc[key] = value;
+        }
+        return acc;
+      }, {});
+
       const reviewData = {
         bookingId: booking._id,
         rating,
         comment,
-        feedback,
+        feedback: cleanedFeedback,
       };
 
-      // TODO: Implement review submission API call
-      console.log('Submitting review:', reviewData);
+      const response = await createReview(reviewData);
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      onSubmit(reviewData);
+      if (response.success) {
+        onSubmit?.(response.data || reviewData);
+      } else {
+        throw new Error(response.message || 'Failed to submit review');
+      }
     } catch (error) {
-      console.error('Review submission failed:', error);
+      console.error('Review submission failed:', {
+        bookingId: booking._id,
+        bookingUser: booking.user?._id || booking.user,
+        driverUser: booking.driver?.user?._id || booking.driver?.user,
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+        data: error.response?.data,
+      });
+      alert(
+        error.response?.data?.message ||
+        (error.response?.status === 403
+          ? 'You are not authorized to review this booking. Make sure you are logged in as the rider who created it.'
+          : error.message || 'Could not submit review. Please try again.')
+      );
     } finally {
       setSubmitting(false);
     }
@@ -79,12 +108,12 @@ const RatingReviewComponent = ({ booking, onSubmit, onSkip }) => {
   ];
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6 max-w-2xl mx-auto">
+    <div className="bg-white rounded-lg shadow-lg p-6 max-w-2xl mx-auto max-h-[80vh] overflow-y-auto">
       <div className="text-center mb-6">
         <ThumbsUp className="h-12 w-12 text-indigo-500 mx-auto mb-4" />
         <h3 className="text-xl font-semibold text-gray-900">Rate Your Experience</h3>
         <p className="text-gray-600 mt-2">
-          How was your {booking.type} with {booking.driver?.user?.name || 'your driver'}?
+          How was your {booking.type} with {booking.driver?.user?.name || booking.logisticsPersonnel?.user?.name || (booking.type === 'ride' ? 'your driver' : 'your personnel')}?
         </p>
       </div>
 

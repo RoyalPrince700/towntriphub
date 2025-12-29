@@ -32,32 +32,61 @@ const DeliveryBookingFlow = ({ user }) => {
       return;
     }
 
+    // Add validation for numeric fields
+    const weight = packageWeight ? parseFloat(packageWeight) : undefined;
+    const value = packageValue ? parseFloat(packageValue) : undefined;
+
+    if (weight !== undefined && (isNaN(weight) || weight < 0)) {
+      setError('Package weight must be a positive number');
+      return;
+    }
+
+    if (value !== undefined && (isNaN(value) || value < 0)) {
+      setError('Package value must be a positive number');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
     try {
       const packageDetails = {
-        description: packageDescription,
-        weight: packageWeight ? parseFloat(packageWeight) : undefined,
-        value: packageValue ? parseFloat(packageValue) : undefined,
+        description: packageDescription.trim(),
+        weight: weight,
+        value: value,
       };
+
+      // Clean up packageDetails - remove undefined fields
+      Object.keys(packageDetails).forEach(key => 
+        packageDetails[key] === undefined && delete packageDetails[key]
+      );
 
       const bookingData = {
         pickupLocation: {
-          address: pickupLocation,
-          coordinates: { latitude: null, longitude: null }
+          address: pickupLocation.trim(),
+          // Don't send coordinates if they are null, or send as numbers if available
+          // For now, let's just send address as required by backend
         },
         destinationLocation: {
-          address: deliveryLocation,
-          coordinates: { latitude: null, longitude: null }
+          address: deliveryLocation.trim(),
         },
         packageDetails,
       };
 
-      await createDeliveryBooking(bookingData);
-      setSuccess(true);
+      console.log('[DeliveryBookingFlow] Sending booking data:', bookingData);
+      const response = await createDeliveryBooking(bookingData);
+      
+      if (response.success) {
+        setSuccess(true);
+      } else {
+        throw new Error(response.message || 'Failed to book delivery');
+      }
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Failed to book delivery');
+      console.error('[DeliveryBookingFlow] Error:', err);
+      const errorMessage = err.response?.data?.errors 
+        ? err.response.data.errors.map(e => e.msg).join(', ')
+        : err.response?.data?.message || err.message || 'Failed to book delivery';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -174,6 +203,7 @@ const DeliveryBookingFlow = ({ user }) => {
                 type="number"
                 placeholder="0.0"
                 step="0.1"
+                min="0"
                 value={packageWeight}
                 onChange={(e) => setPackageWeight(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
@@ -190,6 +220,7 @@ const DeliveryBookingFlow = ({ user }) => {
             <input
               type="number"
               placeholder="Enter value for insurance"
+              min="0"
               value={packageValue}
               onChange={(e) => setPackageValue(e.target.value)}
               className="w-full pl-16 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"

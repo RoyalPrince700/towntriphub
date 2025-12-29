@@ -51,7 +51,11 @@ const Overview = ({ stats }) => {
               <Star className="h-6 w-6 lg:h-8 lg:w-8 text-yellow-600" />
               <div className="ml-3 lg:ml-4">
                 <p className="text-xs lg:text-sm font-medium text-gray-600">Avg Rating</p>
-                <p className="text-lg lg:text-xl font-bold text-gray-900">{stats.averageRating}</p>
+                <p className="text-lg lg:text-xl font-bold text-gray-900">
+                  {typeof stats.averageRating === 'object' 
+                    ? stats.averageRating?.average?.toFixed(1) || '0.0' 
+                    : (typeof stats.averageRating === 'number' ? stats.averageRating.toFixed(1) : (stats.averageRating || '0.0'))}
+                </p>
               </div>
             </div>
           </div>

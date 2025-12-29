@@ -21,7 +21,11 @@ const DriverProfileManagement = ({ onUpdate }) => {
   const [driverProfile, setDriverProfile] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
+    fullName: user?.name || '',
+    dateOfBirth: '',
     phoneNumber: '',
+    licenseNumber: '',
+    licenseExpiryDate: '',
     emergencyContact: {
       name: '',
       phone: '',
@@ -63,7 +67,15 @@ const DriverProfileManagement = ({ onUpdate }) => {
       const data = await response.json();
       setDriverProfile(data.data);
       setFormData({
+        fullName: data.data.fullName || user?.name || '',
+        dateOfBirth: data.data.dateOfBirth
+          ? new Date(data.data.dateOfBirth).toISOString().split('T')[0]
+          : '',
         phoneNumber: data.data.phoneNumber || '',
+        licenseNumber: data.data.licenseNumber || '',
+        licenseExpiryDate: data.data.licenseExpiryDate
+          ? new Date(data.data.licenseExpiryDate).toISOString().split('T')[0]
+          : '',
         emergencyContact: data.data.emergencyContact || {
           name: '',
           phone: '',
@@ -221,6 +233,35 @@ const DriverProfileManagement = ({ onUpdate }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  value={formData.fullName}
+                  onChange={(e) => handleInputChange('fullName', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="Enter your full name"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Date of Birth
+                </label>
+                <input
+                  type="date"
+                  value={formData.dateOfBirth}
+                  onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="mm/dd/yyyy"
+                  required
+                />
+                <p className="mt-1 text-xs text-gray-500">Date of birth is required</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Phone Number
                 </label>
                 <input
@@ -229,7 +270,39 @@ const DriverProfileManagement = ({ onUpdate }) => {
                   onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   placeholder="+220 XXX XXXX"
+                  required
                 />
+                <p className="mt-1 text-xs text-gray-500">Phone number is required</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Driver&apos;s License Number
+                </label>
+                <input
+                  type="text"
+                  value={formData.licenseNumber}
+                  onChange={(e) => handleInputChange('licenseNumber', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="DL123456789"
+                  required
+                />
+                <p className="mt-1 text-xs text-gray-500">License number is required</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  License Expiry Date
+                </label>
+                <input
+                  type="date"
+                  value={formData.licenseExpiryDate}
+                  onChange={(e) => handleInputChange('licenseExpiryDate', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="mm/dd/yyyy"
+                  required
+                />
+                <p className="mt-1 text-xs text-gray-500">License expiry date is required</p>
               </div>
             </div>
 
@@ -381,7 +454,15 @@ const DriverProfileManagement = ({ onUpdate }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <p className="text-sm text-gray-600">Full Name</p>
-                <p className="font-medium">{user?.name}</p>
+                <p className="font-medium">{driverProfile.fullName || user?.name}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Date of Birth</p>
+                <p className="font-medium">
+                  {driverProfile.dateOfBirth
+                    ? new Date(driverProfile.dateOfBirth).toLocaleDateString()
+                    : 'Not provided'}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Email</p>
@@ -393,7 +474,15 @@ const DriverProfileManagement = ({ onUpdate }) => {
               </div>
               <div>
                 <p className="text-sm text-gray-600">License Number</p>
-                <p className="font-medium">{driverProfile.licenseNumber}</p>
+                <p className="font-medium">{driverProfile.licenseNumber || 'Not provided'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">License Expiry Date</p>
+                <p className="font-medium">
+                  {driverProfile.licenseExpiryDate
+                    ? new Date(driverProfile.licenseExpiryDate).toLocaleDateString()
+                    : 'Not provided'}
+                </p>
               </div>
             </div>
 

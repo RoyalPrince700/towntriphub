@@ -58,9 +58,13 @@ const registerLogisticsPersonnel = asyncHandler(async (req, res) => {
   } = req.body;
 
   // Check if user is already registered as logistics personnel
-  const existingPersonnel = await LogisticsPersonnel.findOne({ user: req.user.id });
-  if (existingPersonnel) {
-    return res.status(400).json({ message: 'User is already registered as logistics personnel' });
+  let personnel = await LogisticsPersonnel.findOne({ user: req.user.id });
+  if (personnel) {
+    if (personnel.status !== 'rejected') {
+      return res.status(400).json({ message: 'User is already registered as logistics personnel' });
+    }
+    // If rejected, we will update the existing profile
+    console.log('User has a rejected logistics profile, allowing re-registration');
   }
 
   // Handle file uploads
@@ -97,8 +101,10 @@ const registerLogisticsPersonnel = asyncHandler(async (req, res) => {
     }
   }
 
-  // Create logistics personnel profile with simplified fields
-  const personnel = await LogisticsPersonnel.create({
+  // Create or update logistics personnel profile
+  console.log(personnel ? 'Updating rejected logistics profile...' : 'Creating logistics profile...');
+
+  const personnelData = {
     user: req.user.id,
     dateOfBirth,
     phoneNumber,
@@ -122,9 +128,19 @@ const registerLogisticsPersonnel = asyncHandler(async (req, res) => {
       width: 50,
       height: 50,
     },
-    documents,
+    documents: { ...personnel?.documents, ...documents },
     status: 'pending_approval',
-  });
+    rejectionReason: null, // Clear rejection reason
+  };
+
+  if (personnel) {
+    // Update existing rejected profile
+    Object.assign(personnel, personnelData);
+    await personnel.save();
+  } else {
+    // Create new profile
+    personnel = await LogisticsPersonnel.create(personnelData);
+  }
 
   const populatedPersonnel = await LogisticsPersonnel.findById(personnel._id)
     .populate('user', 'name email')
@@ -251,7 +267,7 @@ const getAssignments = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: 'Logistics personnel profile not found' });
   }
 
-  const query = { driver: personnel._id };
+  const query = { logisticsPersonnel: personnel._id };
 
   if (status) {
     if (status.includes(',')) {
@@ -310,7 +326,7 @@ const updateDeliveryStatus = asyncHandler(async (req, res) => {
   }
 
   // Check if booking is assigned to this logistics personnel
-  if (booking.driver.toString() !== personnel._id.toString()) {
+  if (booking.logisticsPersonnel && booking.logisticsPersonnel.toString() !== personnel._id.toString()) {
     return res.status(403).json({ message: 'Not authorized to update this booking' });
   }
 
@@ -343,7 +359,7 @@ const updateDeliveryStatus = asyncHandler(async (req, res) => {
       break;
     case 'completed':
       booking.completedAt = now;
-      personnel.completeBooking(); // Clear current booking and set availability
+      await personnel.completeBooking(); // Clear current booking and set availability
       break;
   }
 
@@ -352,6 +368,7 @@ const updateDeliveryStatus = asyncHandler(async (req, res) => {
   // Update statistics for completed deliveries
   if (status === 'completed') {
     personnel.updateStatistics(booking);
+    await personnel.save();
   }
 
   res.json({
@@ -372,7 +389,7 @@ const getStatistics = asyncHandler(async (req, res) => {
 
   // Get additional stats from bookings
   const bookingStats = await Booking.aggregate([
-    { $match: { driver: personnel._id } },
+    { $match: { logisticsPersonnel: personnel._id } },
     {
       $group: {
         _id: null,
@@ -435,7 +452,7 @@ const getEarnings = asyncHandler(async (req, res) => {
 
   // Get earnings breakdown by period
   const earningsBreakdown = await Booking.aggregate([
-    { $match: { driver: personnel._id, status: 'completed' } },
+    { $match: { logisticsPersonnel: personnel._id, status: 'completed' } },
     {
       $group: {
         _id: {

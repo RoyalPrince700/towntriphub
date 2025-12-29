@@ -161,7 +161,7 @@ const AdminOverview = () => {
                   }`}>
                     {booking.status.replace('_', ' ')}
                   </span>
-                  {booking.price && (
+                  {booking.price?.amount !== undefined && (
                     <p className="text-sm font-medium text-gray-900">
                       D{booking.price.amount}
                     </p>

@@ -65,10 +65,15 @@ const createRideBooking = asyncHandler(async (req, res) => {
 const createDeliveryBooking = asyncHandler(async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.error('[BookingController] Validation errors for delivery:', JSON.stringify(errors.array(), null, 2));
     return buildValidationError(res, errors);
   }
 
   const { pickupLocation, destinationLocation, packageDetails } = req.body;
+
+  if (!req.user || !req.user.id) {
+    return res.status(401).json({ message: 'User not authenticated' });
+  }
 
   const booking = await Booking.create({
     user: req.user.id,
@@ -123,7 +128,14 @@ const getUserBookings = asyncHandler(async (req, res) => {
         path: 'driver',
         populate: {
           path: 'user',
-          select: 'name email',
+          select: 'name email avatarUrl phoneNumber',
+        },
+      },
+      {
+        path: 'logisticsPersonnel',
+        populate: {
+          path: 'user',
+          select: 'name email avatarUrl phoneNumber',
         },
       },
     ],

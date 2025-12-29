@@ -13,15 +13,37 @@ import {
   Filter
 } from 'lucide-react';
 import { getUserBookings } from '../../services/bookingService';
+import { getGivenReviews } from '../../services/reviewService';
+import RatingReviewComponent from '../../components/RatingReviewComponent';
 
 const BookingHistory = ({ stats }) => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // all, ride, delivery
+  const [reviewedBookingIds, setReviewedBookingIds] = useState(new Set());
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
 
   useEffect(() => {
     fetchHistory();
   }, [filter]);
+
+  useEffect(() => {
+    const fetchReviewed = async () => {
+      try {
+        const response = await getGivenReviews({ limit: 100 });
+        if (response.success) {
+          const reviewedIds = response.data
+            .map((review) => review.booking?._id || review.booking)
+            .filter(Boolean);
+          setReviewedBookingIds(new Set(reviewedIds));
+        }
+      } catch (error) {
+        console.error('Failed to fetch submitted reviews:', error);
+      }
+    };
+    fetchReviewed();
+  }, []);
 
   const fetchHistory = async () => {
     try {
@@ -38,6 +60,28 @@ const BookingHistory = ({ stats }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleOpenReview = (booking) => {
+    setSelectedBooking(booking);
+    setShowReviewModal(true);
+  };
+
+  const handleReviewSubmitted = (review) => {
+    if (selectedBooking?._id) {
+      setReviewedBookingIds((prev) => {
+        const updated = new Set(prev);
+        updated.add(selectedBooking._id);
+        return updated;
+      });
+    }
+    setShowReviewModal(false);
+    setSelectedBooking(null);
+  };
+
+  const handleCloseModal = () => {
+    setShowReviewModal(false);
+    setSelectedBooking(null);
   };
 
   const getStatusColor = (status) => {
@@ -186,10 +230,13 @@ const BookingHistory = ({ stats }) => {
                           <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
                           <span className="truncate max-w-[200px] sm:max-w-xs">{booking.pickupLocation.address}</span>
                         </div>
-                        {booking.driver && (
+                        {(booking.driver || booking.logisticsPersonnel) && (
                           <div className="flex items-center text-xs text-gray-500">
-                            <Star className="h-3 w-3 mr-1 flex-shrink-0" />
-                            <span>Driver: {booking.driver.user?.name || 'Assigned'}</span>
+                            <Star className="h-3 w-3 mr-1 flex-shrink-0 text-yellow-400" />
+                            <span>
+                              {booking.type === 'ride' ? 'Driver: ' : 'Personnel: '}
+                              {booking.driver?.user?.name || booking.logisticsPersonnel?.user?.name || 'Assigned'}
+                            </span>
                           </div>
                         )}
                       </div>
@@ -200,6 +247,22 @@ const BookingHistory = ({ stats }) => {
                     <div className="font-bold text-gray-900">
                       GMD {booking.price?.amount || 0}
                     </div>
+                      {booking.status === 'completed' && (
+                        <div className="mt-2">
+                          {reviewedBookingIds.has(booking._id) ? (
+                            <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                              Review submitted
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => handleOpenReview(booking)}
+                              className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full hover:bg-indigo-100 transition-colors"
+                            >
+                              Leave review
+                            </button>
+                          )}
+                        </div>
+                      )}
                     <ChevronRight className="h-5 w-5 text-gray-300 group-hover:text-indigo-600 transition-colors mt-4" />
                   </div>
                 </div>
@@ -226,6 +289,26 @@ const BookingHistory = ({ stats }) => {
           </div>
         )}
       </div>
+
+      {showReviewModal && selectedBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 px-4 py-6">
+          <div className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div className="absolute -top-10 right-0">
+              <button
+                onClick={handleCloseModal}
+                className="text-white bg-gray-800 bg-opacity-70 hover:bg-opacity-90 rounded-full px-3 py-1 text-sm"
+              >
+                Close
+              </button>
+            </div>
+            <RatingReviewComponent
+              booking={selectedBooking}
+              onSubmit={handleReviewSubmitted}
+              onSkip={handleCloseModal}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

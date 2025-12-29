@@ -48,19 +48,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW || '15') * 60 * 1000, // 15 minutes default
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'), // limit each IP to 100 requests per windowMs
-  message: {
-    error: 'Too many requests from this IP, please try again later.'
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-app.use('/api/', limiter);
-
 // CORS configuration
 const corsOptions = {
   origin: function (origin, callback) {
@@ -102,6 +89,21 @@ const corsOptions = {
 app.use(cors(corsOptions));
 // Ensure preflight requests are handled for all routes (useful for debugging CORS)
 app.options('*', cors(corsOptions));
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW || '15') * 60 * 1000, // 15 minutes default
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'), // limit each IP to 100 requests per windowMs
+  message: {
+    error: 'Too many requests from this IP, please try again later.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Do not count or block CORS preflight requests so the browser keeps CORS headers
+  skip: (req) => req.method === 'OPTIONS',
+});
+
+app.use('/api/', limiter);
 
 // Initialize Passport (no sessions)
 app.use(passport.initialize());

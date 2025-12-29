@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -17,9 +17,9 @@ import {
 } from 'lucide-react';
 
 const LogisticsPersonnelRegistration = () => {
-  const { user, token } = useAuth();
+  const { token, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
   const [currentStep, setCurrentStep] = useState(1);
@@ -53,6 +53,63 @@ const LogisticsPersonnelRegistration = () => {
   const [errors, setErrors] = useState({});
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+  // Require authentication before allowing registration
+  useEffect(() => {
+    if (!authLoading && !token) {
+      setError('Please log in to register as logistics personnel.');
+      navigate('/login', { state: { from: '/logistics/register' } });
+    }
+  }, [authLoading, token, navigate]);
+
+  useEffect(() => {
+    const fetchExistingProfile = async () => {
+      if (!token) return;
+      
+      try {
+        const response = await fetch(`${API_URL}/logistics/profile`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        
+        const data = await response.json();
+        if (response.ok && data.success && data.data) {
+          const profile = data.data;
+          // Only pre-fill if it was rejected
+          if (profile.status === 'rejected') {
+            setFormData({
+              dispatchName: profile.businessName || '', // businessName is used for dispatchName in the model
+              dateOfBirth: profile.dateOfBirth ? new Date(profile.dateOfBirth).toISOString().split('T')[0] : '',
+              phoneNumber: profile.phoneNumber || '',
+              emergencyContact: {
+                name: profile.emergencyContact?.name || '',
+                phone: profile.emergencyContact?.phone || '',
+                relationship: profile.emergencyContact?.relationship || '',
+              },
+              businessName: profile.businessName || '',
+              businessAddress: {
+                address: profile.businessAddress?.address || '',
+              },
+              serviceAreas: profile.serviceAreas || [],
+              documents: {
+                passportPhoto: null,
+                idCard: null,
+                driverLicense: null,
+                vehicleFrontPhoto: null,
+                vehicleSidePhoto: null,
+                vehicleBackPhoto: null,
+              },
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching existing profile:', err);
+      }
+    };
+
+    fetchExistingProfile();
+  }, [token, API_URL]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -212,9 +269,15 @@ const LogisticsPersonnelRegistration = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!token) {
+      setError('Please log in to continue.');
+      navigate('/login', { state: { from: '/logistics/register' } });
+      return;
+    }
+
     if (!validateStep(currentStep)) return;
 
-    setLoading(true);
+    setFormLoading(true);
     setError(null);
 
     try {
@@ -249,6 +312,11 @@ const LogisticsPersonnelRegistration = () => {
       console.log('[LogisticsRegistration] Response:', { status: response.status, data });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          setError('Session expired or unauthorized. Please log in again.');
+          navigate('/login', { state: { from: '/logistics/register' } });
+          return;
+        }
         if (data.errors && Array.isArray(data.errors)) {
           const errorMessages = data.errors.map(err => `${err.path || err.param}: ${err.msg}`).join(', ');
           throw new Error(errorMessages || 'Validation failed');
@@ -260,7 +328,7 @@ const LogisticsPersonnelRegistration = () => {
     } catch (err) {
       setError(err.message);
     } finally {
-      setLoading(false);
+      setFormLoading(false);
     }
   };
 
@@ -761,10 +829,10 @@ const LogisticsPersonnelRegistration = () => {
               ) : (
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={formLoading}
                   className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ml-auto flex items-center"
                 >
-                  {loading ? (
+                  {formLoading ? (
                     <>
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                       Submitting...
