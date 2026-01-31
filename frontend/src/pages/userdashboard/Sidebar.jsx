@@ -9,16 +9,19 @@ import {
   Package,
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Shield
 } from 'lucide-react';
 
 const Sidebar = ({
+  user,
   activeTab,
   setActiveTab,
   activeService,
   setActiveService,
   isMobile = false,
   isCollapsed = false,
+  isOpen = false,
   setIsCollapsed = () => {},
   onClose = () => {}
 }) => {
@@ -43,7 +46,9 @@ const Sidebar = ({
       {/* Mobile overlay */}
       {isMobile && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          className={`fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300 ${
+            isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          }`}
           onClick={onClose}
         />
       )}
@@ -51,7 +56,9 @@ const Sidebar = ({
       {/* Sidebar content */}
       <div className={`
         ${isMobile
-          ? 'fixed left-0 top-0 h-full w-80 bg-white shadow-xl z-50 flex'
+          ? `fixed left-0 top-0 h-full w-80 bg-white shadow-xl z-50 flex transform transition-transform duration-300 ease-in-out ${
+              isOpen ? 'translate-x-0' : '-translate-x-full'
+            }`
           : `${isCollapsed ? 'w-16' : 'w-80'} bg-white shadow-lg h-full flex relative transition-all duration-300 ease-in-out`
         }
         flex-col
@@ -69,9 +76,17 @@ const Sidebar = ({
             )}
           </button>
         )}
-        {/* Mobile close button */}
+        {/* Mobile close button & Admin Badge */}
         {isMobile && (
-          <div className="flex justify-end p-4 border-b">
+          <div className="flex justify-between items-center p-4 border-b">
+            {user?.role === 'admin' ? (
+              <div className="flex items-center px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
+                <Shield className="h-3 w-3 mr-1" />
+                Admin
+              </div>
+            ) : (
+              <div /> // Placeholder to keep the close button on the right
+            )}
             <button
               onClick={onClose}
               className="p-2 hover:bg-gray-100 rounded-lg"

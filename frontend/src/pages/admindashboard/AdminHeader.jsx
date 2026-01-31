@@ -1,12 +1,19 @@
 import React from 'react';
-import { Bell, Shield } from 'lucide-react';
+import { Bell, Shield, Menu } from 'lucide-react';
 
-const AdminHeader = ({ user }) => {
+const AdminHeader = ({ user, onMenuClick }) => {
   return (
     <div className="bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-3">
           <div className="flex items-center">
+            {/* Mobile menu button */}
+            <button
+              onClick={onMenuClick}
+              className="lg:hidden p-2 mr-3 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+            >
+              <Menu className="h-6 w-6" />
+            </button>
             <div>
               <h1 className="text-lg lg:text-xl font-bold text-gray-900">TownTripHub</h1>
               <p className="mt-1 text-xs lg:text-sm text-gray-600">
@@ -16,8 +23,8 @@ const AdminHeader = ({ user }) => {
           </div>
 
           <div className="flex items-center space-x-4">
-            {/* Admin badge */}
-            <div className="flex items-center px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
+            {/* Admin badge - Hidden on mobile, shown in sidebar instead */}
+            <div className="hidden lg:flex items-center px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
               <Shield className="h-3 w-3 mr-1" />
               Admin
             </div>

@@ -54,11 +54,11 @@ const Header = ({ user, logout, onMenuClick }) => {
           </div>
 
           <div className="flex items-center space-x-4">
-            {/* Admin button - only show for admin users */}
+            {/* Admin button - only show for admin users - Hidden on mobile, shown in sidebar badge instead */}
             {user?.role === 'admin' && (
               <button
                 onClick={handleAdminClick}
-                className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="hidden lg:flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 title="Admin Dashboard"
               >
                 <Shield className="h-4 w-4 mr-2" />

@@ -22,6 +22,7 @@ export default function UserDashboardDesktop() {
   const [driverProfile, setDriverProfile] = useState(null);
   const [logisticsProfile, setLogisticsProfile] = useState(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
     fetchUserStats();
@@ -78,12 +79,25 @@ export default function UserDashboardDesktop() {
     <div className="min-h-screen bg-gray-50">
       {/* Fixed Desktop Header */}
       <div className="fixed top-0 left-0 right-0 z-40">
-        <Header user={user} logout={logout} />
+        <Header user={user} logout={logout} onMenuClick={() => setIsMobileSidebarOpen(true)} />
       </div>
 
+      {/* Mobile Sidebar */}
+      <Sidebar
+        user={user}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        activeService={activeService}
+        setActiveService={setActiveService}
+        isMobile={true}
+        isOpen={isMobileSidebarOpen}
+        onClose={() => setIsMobileSidebarOpen(false)}
+      />
+
       {/* Fixed Desktop Sidebar */}
-      <div className="fixed left-0 top-16 bottom-0 z-30">
+      <div className="fixed left-0 top-16 bottom-0 z-30 hidden lg:block">
         <Sidebar
+          user={user}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           activeService={activeService}
@@ -96,8 +110,8 @@ export default function UserDashboardDesktop() {
 
       {/* Main Content - Scrollable area */}
       <div className={`mt-16 min-h-screen transition-all duration-300 ease-in-out ${
-        isCollapsed ? 'ml-16' : 'ml-80'
-      }`}>
+        isCollapsed ? 'lg:ml-16' : 'lg:ml-80'
+      } ml-0`}>
         <div className="p-6 overflow-y-auto h-full">
           {activeTab === 'overview' && (
             <Overview 

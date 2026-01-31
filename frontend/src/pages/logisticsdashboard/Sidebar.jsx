@@ -17,6 +17,7 @@ const Sidebar = ({
   activeService,
   setActiveService,
   isMobile = false,
+  isOpen = false,
   onClose = () => {}
 }) => {
   return (
@@ -24,7 +25,9 @@ const Sidebar = ({
       {/* Mobile overlay */}
       {isMobile && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          className={`fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300 ${
+            isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          }`}
           onClick={onClose}
         />
       )}
@@ -32,7 +35,9 @@ const Sidebar = ({
       {/* Sidebar content */}
       <div className={`
         ${isMobile
-          ? 'fixed left-0 top-0 h-full w-80 bg-white shadow-xl z-50 flex'
+          ? `fixed left-0 top-0 h-full w-80 bg-white shadow-xl z-50 flex transform transition-transform duration-300 ease-in-out ${
+              isOpen ? 'translate-x-0' : '-translate-x-full'
+            }`
           : 'w-80 bg-white shadow-lg h-full flex'
         }
         flex-col

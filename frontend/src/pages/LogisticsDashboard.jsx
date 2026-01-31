@@ -129,35 +129,24 @@ const LogisticsDashboard = () => {
 
           {/* Main content */}
           <div className="flex-1 space-y-6">
-            {/* Mobile sidebar trigger */}
-            <div className="lg:hidden mb-4">
-              <button
-                onClick={() => setIsMobileSidebarOpen(true)}
-                className="px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50"
-              >
-                Open Menu
-              </button>
-            </div>
-
             {renderContent()}
           </div>
         </div>
       </div>
 
       {/* Mobile sidebar */}
-      {isMobileSidebarOpen && (
-        <Sidebar
-          isMobile
-          onClose={() => setIsMobileSidebarOpen(false)}
-          activeTab={activeTab}
-          setActiveTab={(tab) => {
-            setActiveTab(tab);
-            setIsMobileSidebarOpen(false);
-          }}
-          activeService={null}
-          setActiveService={() => {}}
-        />
-      )}
+      <Sidebar
+        isMobile
+        isOpen={isMobileSidebarOpen}
+        onClose={() => setIsMobileSidebarOpen(false)}
+        activeTab={activeTab}
+        setActiveTab={(tab) => {
+          setActiveTab(tab);
+          setIsMobileSidebarOpen(false);
+        }}
+        activeService={null}
+        setActiveService={() => {}}
+      />
     </div>
   );
 };

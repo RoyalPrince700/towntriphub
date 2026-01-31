@@ -15,6 +15,7 @@ const AdminDashboardDesktop = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -43,11 +44,20 @@ const AdminDashboardDesktop = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Fixed Desktop Header */}
       <div className="fixed top-0 left-0 right-0 z-40">
-        <AdminHeader user={user} />
+        <AdminHeader user={user} onMenuClick={() => setIsMobileSidebarOpen(true)} />
       </div>
 
+      {/* Mobile Sidebar */}
+      <AdminSidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        isMobile={true}
+        isOpen={isMobileSidebarOpen}
+        onClose={() => setIsMobileSidebarOpen(false)}
+      />
+
       {/* Fixed Desktop Sidebar */}
-      <div className="fixed left-0 top-20 bottom-0 z-30">
+      <div className="fixed left-0 top-20 bottom-0 z-30 hidden lg:block">
         <AdminSidebar
           activeTab={activeTab}
           setActiveTab={setActiveTab}
@@ -58,8 +68,8 @@ const AdminDashboardDesktop = () => {
 
       {/* Main Content - Scrollable area */}
       <div className={`mt-20 min-h-screen transition-all duration-300 ease-in-out ${
-        sidebarCollapsed ? 'ml-16' : 'ml-64'
-      }`}>
+        sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'
+      } ml-0`}>
         <div className="p-6 overflow-y-auto h-full">
           {renderContent()}
         </div>
