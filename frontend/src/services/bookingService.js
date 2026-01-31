@@ -1,30 +1,4 @@
-import axios from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-
-// Create axios instance with auth header
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Add auth token to requests
-api.interceptors.request.use((config) => {
-  try {
-    const authData = localStorage.getItem('tth_auth');
-    if (authData) {
-      const { token } = JSON.parse(authData);
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    }
-  } catch (error) {
-    console.error('Error getting auth token:', error);
-  }
-  return config;
-});
+import api from './api';
 
 // Booking Services
 export const createRideBooking = async (bookingData) => {

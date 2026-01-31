@@ -1,16 +1,9 @@
-import axios from 'axios';
-
-const API_URL = '/api/drivers';
+import api from './api';
 
 // Get driver profile
-export const getDriverProfile = async (token) => {
+export const getDriverProfile = async () => {
   try {
-    const config = {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    };
-    const response = await axios.get(`${API_URL}/profile`, config);
+    const response = await api.get('/drivers/profile');
     return response.data;
   } catch (error) {
     return {
@@ -22,17 +15,54 @@ export const getDriverProfile = async (token) => {
 };
 
 // Register as a driver
-export const registerDriver = async (driverData, token) => {
+export const registerDriver = async (driverData) => {
   try {
-    const config = {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    };
-    const response = await axios.post(`${API_URL}/register`, driverData, config);
+    const response = await api.post('/drivers/register', driverData);
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to register as driver' };
   }
+};
+
+// Get driver assignments
+export const getDriverAssignments = async (status = '') => {
+  const response = await api.get('/drivers/assignments', {
+    params: { status }
+  });
+  return response.data;
+};
+
+// Get driver statistics
+export const getDriverStatistics = async () => {
+  const response = await api.get('/drivers/statistics');
+  return response.data;
+};
+
+// Get driver earnings
+export const getDriverEarnings = async () => {
+  const response = await api.get('/drivers/earnings');
+  return response.data;
+};
+
+// Update driver availability status
+export const updateDriverAvailability = async (availabilityStatus) => {
+  const response = await api.put('/drivers/availability', { availabilityStatus });
+  return response.data;
+};
+
+// Update trip status
+export const updateTripStatus = async (bookingId, status) => {
+  const response = await api.put(`/drivers/assignments/${bookingId}/status`, { status });
+  return response.data;
+};
+
+export default {
+  getDriverProfile,
+  registerDriver,
+  getDriverAssignments,
+  getDriverStatistics,
+  getDriverEarnings,
+  updateDriverAvailability,
+  updateTripStatus,
 };
 

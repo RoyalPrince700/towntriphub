@@ -1,19 +1,9 @@
-import axios from 'axios';
-
-const API_URL = '/api/logistics';
-
-function authConfig(token) {
-  return {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  };
-}
+import api from './api';
 
 // Get logistics profile
-export const getLogisticsProfile = async (token) => {
+export const getLogisticsProfile = async () => {
   try {
-    const response = await axios.get(`${API_URL}/profile`, authConfig(token));
+    const response = await api.get('/logistics/profile');
     return response.data;
   } catch (error) {
     return {
@@ -24,46 +14,39 @@ export const getLogisticsProfile = async (token) => {
   }
 };
 
-export const getLogisticsStatistics = async (token) => {
-  const response = await axios.get(`${API_URL}/statistics`, authConfig(token));
+export const getLogisticsStatistics = async () => {
+  const response = await api.get('/logistics/statistics');
   return response.data;
 };
 
-export const getLogisticsAssignments = async (token, { status, page, limit } = {}) => {
+export const getLogisticsAssignments = async ({ status, page, limit } = {}) => {
   const params = {};
   if (status) params.status = status;
   if (page) params.page = page;
   if (limit) params.limit = limit;
-  const response = await axios.get(`${API_URL}/assignments`, {
-    ...authConfig(token),
+  const response = await api.get('/logistics/assignments', {
     params,
   });
   return response.data;
 };
 
-export const updateLogisticsAssignmentStatus = async (token, bookingId, payload) => {
-  const response = await axios.put(
-    `${API_URL}/assignments/${bookingId}/status`,
-    payload,
-    authConfig(token)
+export const updateLogisticsAssignmentStatus = async (bookingId, payload) => {
+  const response = await api.put(
+    `/logistics/assignments/${bookingId}/status`,
+    payload
   );
   return response.data;
 };
 
-export const getLogisticsEarnings = async (token) => {
-  const response = await axios.get(`${API_URL}/earnings`, authConfig(token));
+export const getLogisticsEarnings = async () => {
+  const response = await api.get('/logistics/earnings');
   return response.data;
 };
 
 // Register as logistics personnel
-export const registerLogisticsPersonnel = async (logisticsData, token) => {
+export const registerLogisticsPersonnel = async (logisticsData) => {
   try {
-    const config = {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    };
-    const response = await axios.post(`${API_URL}/register`, logisticsData, config);
+    const response = await api.post('/logistics/register', logisticsData);
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to register as logistics' };

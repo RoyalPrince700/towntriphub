@@ -55,7 +55,7 @@ export default function UserDashboardDesktop() {
 
   const fetchDriverStatus = async () => {
     try {
-      const response = await getDriverProfile(token);
+      const response = await getDriverProfile();
       if (response.success) {
         setDriverProfile(response.data);
       }
@@ -66,7 +66,7 @@ export default function UserDashboardDesktop() {
 
   const fetchLogisticsStatus = async () => {
     try {
-      const response = await getLogisticsProfile(token);
+      const response = await getLogisticsProfile();
       if (response.success) {
         setLogisticsProfile(response.data);
       }

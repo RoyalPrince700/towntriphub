@@ -21,6 +21,15 @@ import {
   Calendar,
   MessageSquare
 } from 'lucide-react';
+import { 
+  getDriverProfile, 
+  getDriverAssignments, 
+  getDriverStatistics, 
+  getDriverEarnings, 
+  updateDriverAvailability, 
+  updateTripStatus 
+} from '../services/driverService';
+import { cancelBooking } from '../services/bookingService';
 import { getUserReviews } from '../services/reviewService';
 
 const DriverDashboard = () => {
@@ -59,49 +68,30 @@ const DriverDashboard = () => {
     try {
       setLoading(true);
 
-      const authData = JSON.parse(localStorage.getItem('tth_auth') || '{}');
-      const token = authData.token;
+      // Fetch all data in parallel
+      const [profileRes, assignmentsRes, statsRes, earningsRes] = await Promise.all([
+        getDriverProfile(),
+        getDriverAssignments('driver_assigned,driver_en_route,picked_up,in_transit,completed,cancelled'),
+        getDriverStatistics(),
+        getDriverEarnings().catch(() => ({ success: false }))
+      ]);
 
-      if (!token) {
-        throw new Error('Authentication token not found');
+      if (profileRes.success) {
+        setDriverProfile(profileRes.data);
+      } else {
+        throw new Error(profileRes.message || 'Failed to fetch driver profile');
       }
 
-      const headers = {
-        'Authorization': `Bearer ${token}`,
-      };
-
-      // Fetch driver profile
-      const profileResponse = await fetch('/api/drivers/profile', { headers });
-
-      if (!profileResponse.ok) {
-        throw new Error('Failed to fetch driver profile');
+      if (assignmentsRes.success) {
+        setAssignments(assignmentsRes.data);
       }
 
-      const profileData = await profileResponse.json();
-      setDriverProfile(profileData.data);
-
-      // Fetch assignments (all relevant statuses)
-      const assignmentsResponse = await fetch('/api/drivers/assignments?status=driver_assigned,driver_en_route,picked_up,in_transit,completed,cancelled', { headers });
-
-      if (assignmentsResponse.ok) {
-        const assignmentsData = await assignmentsResponse.json();
-        setAssignments(assignmentsData.data);
+      if (statsRes.success) {
+        setStatistics(statsRes.data);
       }
 
-      // Fetch statistics
-      const statsResponse = await fetch('/api/drivers/statistics', { headers });
-
-      if (statsResponse.ok) {
-        const statsData = await statsResponse.json();
-        setStatistics(statsData.data);
-      }
-
-      // Fetch earnings
-      const earningsResponse = await fetch('/api/drivers/earnings', { headers });
-
-      if (earningsResponse.ok) {
-        const earningsData = await earningsResponse.json();
-        setEarnings(earningsData.data);
+      if (earningsRes.success) {
+        setEarnings(earningsRes.data);
       }
 
     } catch (err) {
@@ -137,55 +127,34 @@ const DriverDashboard = () => {
 
   const updateAvailabilityStatus = async (status) => {
     try {
-      const authData = JSON.parse(localStorage.getItem('tth_auth') || '{}');
-      const token = authData.token;
-
-      const response = await fetch('/api/drivers/availability', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ availabilityStatus: status }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update availability');
+      const response = await updateDriverAvailability(status);
+      
+      if (response.success) {
+        // Update local state
+        setDriverProfile(prev => ({
+          ...prev,
+          availabilityStatus: status,
+        }));
+      } else {
+        throw new Error(response.message || 'Failed to update availability');
       }
-
-      // Update local state
-      setDriverProfile(prev => ({
-        ...prev,
-        availabilityStatus: status,
-      }));
 
     } catch (err) {
       console.error('Error updating availability:', err);
-      alert('Failed to update availability status');
+      alert(err.message || 'Failed to update availability status');
     }
   };
 
-  const updateTripStatus = async (bookingId, status) => {
+  const handleUpdateTripStatus = async (bookingId, status) => {
     try {
-      const authData = JSON.parse(localStorage.getItem('tth_auth') || '{}');
-      const token = authData.token;
+      const response = await updateTripStatus(bookingId, status);
 
-      const response = await fetch(`/api/drivers/assignments/${bookingId}/status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ status }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || 'Failed to update status');
+      if (response.success) {
+        // Refresh data
+        fetchDriverData();
+      } else {
+        throw new Error(response.message || 'Failed to update status');
       }
-
-      // Refresh data
-      fetchDriverData();
 
     } catch (err) {
       console.error('Error updating status:', err);
@@ -202,27 +171,16 @@ const DriverDashboard = () => {
 
     try {
       setCancelLoading(true);
-      const authData = JSON.parse(localStorage.getItem('tth_auth') || '{}');
-      const token = authData.token;
+      const response = await cancelBooking(cancellingBooking._id, cancelReason);
 
-      const response = await fetch(`/api/bookings/${cancellingBooking._id}/cancel`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ reason: cancelReason }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || 'Failed to cancel booking');
+      if (response.success) {
+        setShowCancelModal(false);
+        setCancellingBooking(null);
+        setCancelReason('');
+        fetchDriverData();
+      } else {
+        throw new Error(response.message || 'Failed to cancel booking');
       }
-
-      setShowCancelModal(false);
-      setCancellingBooking(null);
-      setCancelReason('');
-      fetchDriverData();
 
     } catch (err) {
       console.error('Error cancelling booking:', err);
@@ -671,7 +629,7 @@ const DriverDashboard = () => {
 
                         <div className="flex justify-end space-x-3">
                           <button 
-                            onClick={() => updateTripStatus(assignment._id, 'driver_en_route')}
+                            onClick={() => handleUpdateTripStatus(assignment._id, 'driver_en_route')}
                             disabled={!!ongoingRide}
                             className={`px-4 py-2 rounded-lg transition-colors font-medium ${
                               ongoingRide 
@@ -750,7 +708,7 @@ const DriverDashboard = () => {
                         <div className="flex flex-wrap gap-4">
                           {ride.status === 'driver_assigned' && (
                             <button 
-                              onClick={() => updateTripStatus(ride._id, 'driver_en_route')}
+                              onClick={() => handleUpdateTripStatus(ride._id, 'driver_en_route')}
                               className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors font-bold shadow-md"
                             >
                               Start Trip
@@ -758,7 +716,7 @@ const DriverDashboard = () => {
                           )}
                           {ride.status === 'driver_en_route' && (
                             <button 
-                              onClick={() => updateTripStatus(ride._id, 'picked_up')}
+                              onClick={() => handleUpdateTripStatus(ride._id, 'picked_up')}
                               className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors font-bold shadow-md"
                             >
                               Picked Up Passenger
@@ -766,7 +724,7 @@ const DriverDashboard = () => {
                           )}
                           {ride.status === 'picked_up' && (
                             <button 
-                              onClick={() => updateTripStatus(ride._id, 'in_transit')}
+                              onClick={() => handleUpdateTripStatus(ride._id, 'in_transit')}
                               className="bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700 transition-colors font-bold shadow-md"
                             >
                               Start Journey
@@ -774,7 +732,7 @@ const DriverDashboard = () => {
                           )}
                           {ride.status === 'in_transit' && (
                             <button 
-                              onClick={() => updateTripStatus(ride._id, 'completed')}
+                              onClick={() => handleUpdateTripStatus(ride._id, 'completed')}
                               className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors font-bold shadow-md"
                             >
                               Complete Trip

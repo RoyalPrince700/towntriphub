@@ -42,10 +42,10 @@ const LogisticsDashboard = () => {
       setError(null);
 
       const [statsRes, assignmentsRes, profileRes, earningsRes] = await Promise.all([
-        getLogisticsStatistics(token),
-        getLogisticsAssignments(token, { status: 'driver_assigned,driver_en_route,picked_up,in_transit,completed,cancelled' }),
-        getLogisticsProfile(token),
-        getLogisticsEarnings(token).catch(() => null),
+        getLogisticsStatistics(),
+        getLogisticsAssignments({ status: 'driver_assigned,driver_en_route,picked_up,in_transit,completed,cancelled' }),
+        getLogisticsProfile(),
+        getLogisticsEarnings().catch(() => null),
       ]);
 
       if (statsRes?.success) setStats(statsRes.data);
@@ -66,7 +66,7 @@ const LogisticsDashboard = () => {
 
   const handleUpdateStatus = async (bookingId, status) => {
     try {
-      const response = await updateLogisticsAssignmentStatus(token, bookingId, { status });
+      const response = await updateLogisticsAssignmentStatus(bookingId, { status });
       if (response.success) {
         await loadData(); // Refresh all data
         return true;

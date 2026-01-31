@@ -1,9 +1,8 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { decodeJWT } from '../utils/jwt';
+import api from '../services/api';
 
 const AuthContext = createContext(null);
-
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000/api';
 
 function getStoredAuth() {
   try {
@@ -37,47 +36,42 @@ export function AuthProvider({ children }) {
   };
 
   const login = async (email, password) => {
-    const res = await fetch(`${API_BASE}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data?.message || 'Login failed');
-    saveAuth(data);
+    try {
+      const res = await api.post('/auth/login', { email, password });
+      saveAuth(res.data);
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Login failed');
+    }
   };
 
   const register = async (name, email, password) => {
-    console.log('Frontend register attempt:', { name, email, passwordLength: password?.length });
-    const res = await fetch(`${API_BASE}/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password }),
-    });
-    const data = await res.json();
-    console.log('Register response:', { status: res.status, data });
-    if (!res.ok) throw new Error(data?.message || data?.errors?.[0]?.msg || 'Register failed');
-    return data;
+    try {
+      const res = await api.post('/auth/register', { name, email, password });
+      return res.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || error.response?.data?.errors?.[0]?.msg || 'Register failed');
+    }
   };
 
   const logout = () => {
     saveAuth({ token: null, user: null });
+    window.location.href = '/login';
   };
 
   const refreshUser = async () => {
     if (!token) return false;
     try {
-      const res = await fetch(`${API_BASE}/auth/profile`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error('Failed to refresh user data');
-      const data = await res.json();
+      const res = await api.get('/auth/profile');
+      const data = res.data;
       const updatedUser = { ...user, ...data.user };
       setUser(updatedUser);
       setStoredAuth({ token, user: updatedUser });
       return true;
     } catch (error) {
       console.error('Failed to refresh user:', error);
+      if (error.response?.status === 401) {
+        logout();
+      }
       return false;
     }
   };
@@ -105,23 +99,21 @@ export function AuthProvider({ children }) {
   };
 
   const requestPasswordReset = async (email) => {
-    const res = await fetch(`${API_BASE}/auth/password/forgot`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
-    });
-    return res.json();
+    try {
+      const res = await api.post('/auth/password/forgot', { email });
+      return res.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to request password reset');
+    }
   };
 
   const resetPassword = async (tokenParam, password) => {
-    const res = await fetch(`${API_BASE}/auth/password/reset`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: tokenParam, password }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data?.message || 'Reset failed');
-    return data;
+    try {
+      const res = await api.post('/auth/password/reset', { token: tokenParam, password });
+      return res.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Reset failed');
+    }
   };
 
 
