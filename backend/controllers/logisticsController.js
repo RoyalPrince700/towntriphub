@@ -5,6 +5,7 @@ const fs = require('fs');
 const LogisticsPersonnel = require('../models/LogisticsPersonnel');
 const User = require('../models/User');
 const Booking = require('../models/Booking');
+const EmailService = require('../mailtrap/email');
 
 // Helper function for validation errors
 function buildValidationError(res, errors) {
@@ -369,6 +370,49 @@ const updateDeliveryStatus = asyncHandler(async (req, res) => {
   if (status === 'completed') {
     personnel.updateStatistics(booking);
     await personnel.save();
+  }
+
+  // Send email notifications
+  try {
+    const populatedBooking = await Booking.findById(booking._id)
+      .populate('user', 'name email')
+      .populate({
+        path: 'logisticsPersonnel',
+        populate: { path: 'user', select: 'name' }
+      });
+
+    if (populatedBooking && populatedBooking.user) {
+      if (status === 'completed') {
+        const tripDetails = {
+          tripId: populatedBooking._id,
+          pickupLocation: populatedBooking.pickupLocation,
+          destination: populatedBooking.destinationLocation,
+          driverName: populatedBooking.logisticsPersonnel.user.name,
+          vehicleInfo: populatedBooking.logisticsPersonnel.businessName || 'Logistics Partner',
+          actualFare: populatedBooking.price.amount,
+          paymentMethod: populatedBooking.payment.method || 'Cash',
+          completionTime: new Date().toLocaleString(),
+        };
+        await EmailService.sendTripCompletionEmail(
+          populatedBooking.user.email,
+          populatedBooking.user.name,
+          tripDetails
+        );
+      } else {
+        const bookingData = {
+          bookingId: populatedBooking._id,
+          destination: populatedBooking.destinationLocation,
+        };
+        await EmailService.sendRideStatusUpdateEmail(
+          populatedBooking.user.email,
+          populatedBooking.user.name,
+          status,
+          bookingData
+        );
+      }
+    }
+  } catch (emailError) {
+    console.error('Error sending delivery status update email:', emailError.message);
   }
 
   res.json({

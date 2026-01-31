@@ -272,8 +272,222 @@ class EmailTemplates {
           <p>Best regards,<br>The TownTripHub Team</p>
         </div>
         <div class="footer">
-          <p>&copy; 2024 TownTripHub. All rights reserved.</p>
+          <p>&copy; 2026 TownTripHub. All rights reserved.</p>
           <p>If you have any questions, contact us at support@towntriphub.com</p>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  /**
+   * Get admin booking notification template
+   * @param {Object} bookingDetails - Booking information
+   * @returns {string} HTML email template
+   */
+  getAdminBookingNotificationTemplate(bookingDetails) {
+    return `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>New Booking Notification - TownTripHub</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: #1e293b; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+          .content { background-color: #f8f9fa; padding: 30px; border-radius: 0 0 8px 8px; }
+          .details { background-color: white; padding: 20px; border-radius: 6px; margin: 20px 0; border: 1px solid #e5e7eb; }
+          .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>New Booking Received</h1>
+        </div>
+        <div class="content">
+          <p>A new ${bookingDetails.type} booking has been placed on TownTripHub.</p>
+
+          <div class="details">
+            <h3>Booking Details</h3>
+            <p><strong>User:</strong> ${bookingDetails.userName} (${bookingDetails.userEmail})</p>
+            <p><strong>Booking ID:</strong> ${bookingDetails.bookingId}</p>
+            <p><strong>Pickup:</strong> ${bookingDetails.pickupLocation}</p>
+            <p><strong>Destination:</strong> ${bookingDetails.destination}</p>
+            <p><strong>Scheduled Time:</strong> ${bookingDetails.scheduledTime}</p>
+          </div>
+
+          <p>Please log in to the admin dashboard to assign a driver or logistics personnel.</p>
+          <p><a href="${process.env.FRONTEND_URL}/admin/bookings" style="display: inline-block; background-color: #1e293b; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Manage Bookings</a></p>
+        </div>
+        <div class="footer">
+          <p>&copy; 2026 TownTripHub Admin System.</p>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  /**
+   * Get driver assignment notification template
+   * @param {string} driverName - Driver's name
+   * @param {Object} userDetails - User information
+   * @param {Object} bookingDetails - Booking information
+   * @returns {string} HTML email template
+   */
+  getDriverAssignmentNotificationTemplate(driverName, userDetails, bookingDetails) {
+    return `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>New Assignment - TownTripHub</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+          .content { background-color: #f8f9fa; padding: 30px; border-radius: 0 0 8px 8px; }
+          .details { background-color: white; padding: 20px; border-radius: 6px; margin: 20px 0; border: 1px solid #e5e7eb; }
+          .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>New Assignment</h1>
+        </div>
+        <div class="content">
+          <h2>Hello ${driverName},</h2>
+          <p>You have been assigned a new ${bookingDetails.type} booking. Here are the details:</p>
+
+          <div class="details">
+            <h3>Customer Details</h3>
+            <p><strong>Name:</strong> ${userDetails.name}</p>
+            <p><strong>Phone:</strong> ${userDetails.phoneNumber || 'N/A'}</p>
+            
+            <h3>Booking Details</h3>
+            <p><strong>Booking ID:</strong> ${bookingDetails.bookingId}</p>
+            <p><strong>Pickup:</strong> ${bookingDetails.pickupLocation}</p>
+            <p><strong>Destination:</strong> ${bookingDetails.destination}</p>
+            <p><strong>Fare:</strong> GMD ${bookingDetails.fare}</p>
+          </div>
+
+          <p>Please open your driver dashboard to accept the trip and start the navigation.</p>
+          <p><a href="${process.env.FRONTEND_URL}/driver/dashboard" style="display: inline-block; background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Go to Dashboard</a></p>
+        </div>
+        <div class="footer">
+          <p>&copy; 2026 TownTripHub. All rights reserved.</p>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  /**
+   * Get user assignment notification template
+   * @param {string} userName - User's name
+   * @param {Object} driverDetails - Driver information
+   * @param {Object} bookingDetails - Booking information
+   * @returns {string} HTML email template
+   */
+  getUserAssignmentNotificationTemplate(userName, driverDetails, bookingDetails) {
+    return `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Driver Assigned - TownTripHub</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: #16a34a; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+          .content { background-color: #f8f9fa; padding: 30px; border-radius: 0 0 8px 8px; }
+          .details { background-color: white; padding: 20px; border-radius: 6px; margin: 20px 0; border: 1px solid #e5e7eb; }
+          .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Driver Assigned!</h1>
+        </div>
+        <div class="content">
+          <h2>Hello ${userName},</h2>
+          <p>A driver has been assigned to your booking. Here are their details:</p>
+
+          <div class="details">
+            <h3>Driver Details</h3>
+            <p><strong>Name:</strong> ${driverDetails.name}</p>
+            <p><strong>Phone:</strong> ${driverDetails.phoneNumber || 'N/A'}</p>
+            <p><strong>Vehicle:</strong> ${driverDetails.vehicleInfo}</p>
+            <p><strong>Plate Number:</strong> ${driverDetails.plateNumber}</p>
+            
+            <h3>Booking Summary</h3>
+            <p><strong>Booking ID:</strong> ${bookingDetails.bookingId}</p>
+            <p><strong>Pickup:</strong> ${bookingDetails.pickupLocation}</p>
+            <p><strong>Destination:</strong> ${bookingDetails.destination}</p>
+            <p><strong>Confirmed Fare:</strong> GMD ${bookingDetails.fare}</p>
+          </div>
+
+          <p>Your driver is now aware of your request and will be heading to your location shortly.</p>
+        </div>
+        <div class="footer">
+          <p>&copy; 2026 TownTripHub. All rights reserved.</p>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  /**
+   * Get ride status update template
+   * @param {string} userName - User's name
+   * @param {string} status - New status
+   * @param {Object} bookingDetails - Booking information
+   * @returns {string} HTML email template
+   */
+  getRideStatusUpdateTemplate(userName, status, bookingDetails) {
+    const statusMessages = {
+      'driver_en_route': 'Your driver is on the way to your pickup location.',
+      'picked_up': 'You have been picked up. Your trip has started!',
+      'in_transit': 'Your trip is in progress.',
+      'cancelled': 'Your booking has been cancelled.',
+    };
+
+    const message = statusMessages[status] || `Your booking status has been updated to: ${status.replace(/_/g, ' ')}`;
+
+    return `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Booking Update - TownTripHub</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+          .content { background-color: #f8f9fa; padding: 30px; border-radius: 0 0 8px 8px; }
+          .status-box { background-color: #e0f2fe; border-left: 4px solid #0369a1; padding: 15px; margin: 20px 0; border-radius: 4px; }
+          .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Booking Update</h1>
+        </div>
+        <div class="content">
+          <h2>Hello ${userName},</h2>
+          
+          <div class="status-box">
+            <p style="margin: 0; font-weight: bold; font-size: 18px;">${message}</p>
+          </div>
+
+          <p><strong>Booking ID:</strong> ${bookingDetails.bookingId}</p>
+          <p><strong>Destination:</strong> ${bookingDetails.destination}</p>
+
+          <p>You can track your ride status in real-time from your dashboard.</p>
+          <p><a href="${process.env.FRONTEND_URL}/user/dashboard" style="display: inline-block; background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Track Ride</a></p>
+        </div>
+        <div class="footer">
+          <p>&copy; 2026 TownTripHub. All rights reserved.</p>
         </div>
       </body>
       </html>

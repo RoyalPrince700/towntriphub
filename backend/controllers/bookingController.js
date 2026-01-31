@@ -4,6 +4,7 @@ const Booking = require('../models/Booking');
 const User = require('../models/User');
 const Driver = require('../models/Driver');
 const Review = require('../models/Review');
+const EmailService = require('../mailtrap/email');
 
 // Helper function for validation errors
 function buildValidationError(res, errors) {
@@ -57,6 +58,33 @@ const createRideBooking = asyncHandler(async (req, res) => {
     data: populatedBooking,
     message: 'Ride booking created successfully',
   });
+
+  // Send emails
+  try {
+    const bookingData = {
+      bookingId: populatedBooking._id,
+      pickupLocation: populatedBooking.pickupLocation,
+      destination: populatedBooking.destinationLocation,
+      scheduledTime: new Date(populatedBooking.scheduledTime).toLocaleString(),
+      estimatedFare: populatedBooking.estimatedFare || 'Pending',
+      status: populatedBooking.status,
+      type: populatedBooking.type,
+      userName: populatedBooking.user.name,
+      userEmail: populatedBooking.user.email,
+    };
+
+    // To User
+    await EmailService.sendBookingConfirmation(
+      populatedBooking.user.email,
+      populatedBooking.user.name,
+      bookingData
+    );
+
+    // To Admin
+    await EmailService.sendAdminBookingNotification(bookingData);
+  } catch (emailError) {
+    console.error('Error sending booking emails:', emailError.message);
+  }
 });
 
 // @desc    Create a new delivery booking
@@ -106,6 +134,33 @@ const createDeliveryBooking = asyncHandler(async (req, res) => {
     data: populatedBooking,
     message: 'Delivery booking created successfully',
   });
+
+  // Send emails
+  try {
+    const bookingData = {
+      bookingId: populatedBooking._id,
+      pickupLocation: populatedBooking.pickupLocation,
+      destination: populatedBooking.destinationLocation,
+      scheduledTime: new Date(populatedBooking.createdAt).toLocaleString(),
+      estimatedFare: populatedBooking.estimatedFare || 'Pending',
+      status: populatedBooking.status,
+      type: populatedBooking.type,
+      userName: populatedBooking.user.name,
+      userEmail: populatedBooking.user.email,
+    };
+
+    // To User
+    await EmailService.sendBookingConfirmation(
+      populatedBooking.user.email,
+      populatedBooking.user.name,
+      bookingData
+    );
+
+    // To Admin
+    await EmailService.sendAdminBookingNotification(bookingData);
+  } catch (emailError) {
+    console.error('Error sending delivery booking emails:', emailError.message);
+  }
 });
 
 // @desc    Get user's bookings
@@ -423,6 +478,49 @@ const assignDriver = asyncHandler(async (req, res) => {
     data: populatedBooking,
     message: 'Driver assigned successfully',
   });
+
+  // Send assignment emails
+  try {
+    const userDetails = {
+      name: populatedBooking.user.name,
+      email: populatedBooking.user.email,
+      phoneNumber: populatedBooking.user.phoneNumber,
+    };
+
+    const driverDetails = {
+      name: populatedBooking.driver.user.name,
+      email: populatedBooking.driver.user.email,
+      phoneNumber: populatedBooking.driver.phoneNumber,
+      vehicleInfo: `${populatedBooking.driver.vehicle.color} ${populatedBooking.driver.vehicle.make} ${populatedBooking.driver.vehicle.model}`,
+      plateNumber: populatedBooking.driver.vehicle.plateNumber,
+    };
+
+    const bookingData = {
+      bookingId: populatedBooking._id,
+      pickupLocation: populatedBooking.pickupLocation,
+      destination: populatedBooking.destinationLocation,
+      fare: populatedBooking.price.amount,
+      type: populatedBooking.type,
+    };
+
+    // To Driver
+    await EmailService.sendDriverAssignmentNotification(
+      driverDetails.email,
+      driverDetails.name,
+      userDetails,
+      bookingData
+    );
+
+    // To User
+    await EmailService.sendUserAssignmentNotification(
+      userDetails.email,
+      userDetails.name,
+      driverDetails,
+      bookingData
+    );
+  } catch (emailError) {
+    console.error('Error sending assignment emails:', emailError.message);
+  }
 });
 
 // @desc    Get all bookings for admin management
@@ -586,6 +684,49 @@ const assignLogisticsPersonnel = asyncHandler(async (req, res) => {
     data: populatedBooking,
     message: 'Logistics personnel assigned successfully',
   });
+
+  // Send assignment emails
+  try {
+    const userDetails = {
+      name: populatedBooking.user.name,
+      email: populatedBooking.user.email,
+      phoneNumber: populatedBooking.user.phoneNumber,
+    };
+
+    const personnelDetails = {
+      name: populatedBooking.logisticsPersonnel.user.name,
+      email: populatedBooking.logisticsPersonnel.user.email,
+      phoneNumber: populatedBooking.logisticsPersonnel.phoneNumber,
+      vehicleInfo: populatedBooking.logisticsPersonnel.businessName || 'Logistics Partner',
+      plateNumber: 'N/A',
+    };
+
+    const bookingData = {
+      bookingId: populatedBooking._id,
+      pickupLocation: populatedBooking.pickupLocation,
+      destination: populatedBooking.destinationLocation,
+      fare: populatedBooking.price.amount,
+      type: populatedBooking.type,
+    };
+
+    // To Personnel
+    await EmailService.sendDriverAssignmentNotification(
+      personnelDetails.email,
+      personnelDetails.name,
+      userDetails,
+      bookingData
+    );
+
+    // To User
+    await EmailService.sendUserAssignmentNotification(
+      userDetails.email,
+      userDetails.name,
+      personnelDetails,
+      bookingData
+    );
+  } catch (emailError) {
+    console.error('Error sending logistics assignment emails:', emailError.message);
+  }
 });
 
 // @desc    Get available logistics personnel for assignment

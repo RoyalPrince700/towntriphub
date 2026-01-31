@@ -1,58 +1,82 @@
 import React from 'react';
+import { Zap, ShieldCheck, Banknote, Clock, Map, PhoneCall } from 'lucide-react';
 
 const Features = () => {
+  const features = [
+    {
+      title: "Fast & Reliable",
+      description: "Get picked up within minutes with our network of verified drivers across The Gambia.",
+      icon: <Zap className="w-6 h-6 text-indigo-600" />,
+      color: "bg-indigo-50"
+    },
+    {
+      title: "Verified Drivers",
+      description: "All our drivers are thoroughly vetted and approved to ensure your safety and security.",
+      icon: <ShieldCheck className="w-6 h-6 text-emerald-600" />,
+      color: "bg-emerald-50"
+    },
+    {
+      title: "Affordable Pricing",
+      description: "Competitive rates with transparent pricing. No hidden fees or surprise charges.",
+      icon: <Banknote className="w-6 h-6 text-amber-600" />,
+      color: "bg-amber-50"
+    },
+    {
+      title: "24/7 Support",
+      description: "Our dedicated support team is always available to help you with any queries or issues.",
+      icon: <PhoneCall className="w-6 h-6 text-rose-600" />,
+      color: "bg-rose-50"
+    },
+    {
+      title: "Live Tracking",
+      description: "Track your ride in real-time and share your trip status with friends and family.",
+      icon: <Map className="w-6 h-6 text-blue-600" />,
+      color: "bg-blue-50"
+    },
+    {
+      title: "Scheduled Rides",
+      description: "Plan ahead by scheduling your rides for a future time and date.",
+      icon: <Clock className="w-6 h-6 text-purple-600" />,
+      color: "bg-purple-50"
+    }
+  ];
+
   return (
-    <div className="mt-20">
-      <div className="text-center">
-        <h3 className="text-3xl font-extrabold text-gray-900">
-          Why Choose TownTripHub?
-        </h3>
-        <p className="mt-4 max-w-2xl mx-auto text-xl text-gray-500">
-          Experience the future of transportation in The Gambia
-        </p>
-      </div>
-
-      <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-        {/* Feature 1 */}
-        <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
-          <div className="flex items-center justify-center w-12 h-12 bg-indigo-500 rounded-md mb-4">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
-          <h4 className="text-lg font-medium text-gray-900 mb-2">Fast & Reliable</h4>
-          <p className="text-gray-500">
-            Get picked up within minutes with our network of verified drivers across The Gambia.
+    <section className="py-24 bg-white relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="text-center mb-16">
+          <h2 className="text-indigo-600 font-semibold tracking-wide uppercase text-sm mb-2">Features</h2>
+          <h3 className="text-3xl md:text-5xl font-extrabold text-gray-900 mb-4">
+            Why Choose TownTripHub?
+          </h3>
+          <p className="max-w-2xl mx-auto text-lg text-gray-600">
+            We're building the most reliable transportation network in The Gambia, 
+            focused on safety, speed, and comfort.
           </p>
         </div>
 
-        {/* Feature 2 */}
-        <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
-          <div className="flex items-center justify-center w-12 h-12 bg-green-500 rounded-md mb-4">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <h4 className="text-lg font-medium text-gray-900 mb-2">Verified Drivers</h4>
-          <p className="text-gray-500">
-            All our drivers are thoroughly vetted and approved to ensure your safety and security.
-          </p>
-        </div>
-
-        {/* Feature 3 */}
-        <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
-          <div className="flex items-center justify-center w-12 h-12 bg-yellow-500 rounded-md mb-4">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <h4 className="text-lg font-medium text-gray-900 mb-2">Affordable Pricing</h4>
-          <p className="text-gray-500">
-            Competitive rates with transparent pricing. No hidden fees or surprise charges.
-          </p>
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          {features.map((feature, index) => (
+            <div 
+              key={index}
+              className="group p-8 rounded-3xl bg-white border border-gray-100 hover:border-indigo-100 hover:shadow-2xl hover:shadow-indigo-50 transition-all duration-300 transform hover:-translate-y-1"
+            >
+              <div className={`w-14 h-14 ${feature.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                {feature.icon}
+              </div>
+              <h4 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h4>
+              <p className="text-gray-600 leading-relaxed">
+                {feature.description}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
-    </div>
+      
+      {/* Background decoration */}
+      <div className="absolute top-1/2 left-0 -translate-y-1/2 w-64 h-64 bg-indigo-50 rounded-full blur-3xl -z-10 opacity-50"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-50 rounded-full blur-3xl -z-10 opacity-50"></div>
+    </section>
   );
 };
 

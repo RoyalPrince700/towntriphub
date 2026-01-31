@@ -14,9 +14,9 @@ async function testMailtrap() {
     // Test sending a simple email
     console.log('📧 Sending test email...');
 
-    // For testing, we'll send to a dummy email that will be caught by Mailtrap
+    // Send test welcome message to the specified email
     await emailService.sendWelcomeEmail(
-      'test@example.com',
+      'finetex700@gmail.com',
       'Test User',
       'test-verification-token-12345'
     );

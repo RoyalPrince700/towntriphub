@@ -5,6 +5,7 @@ const fs = require('fs');
 const Driver = require('../models/Driver');
 const User = require('../models/User');
 const Booking = require('../models/Booking');
+const EmailService = require('../mailtrap/email');
 
 // Helper function for validation errors
 function buildValidationError(res, errors) {
@@ -442,6 +443,49 @@ const updateTripStatus = asyncHandler(async (req, res) => {
   // Update driver statistics for completed trips
   if (status === 'completed') {
     driver.updateStatistics(booking);
+  }
+
+  // Send email notifications
+  try {
+    const populatedBooking = await Booking.findById(booking._id)
+      .populate('user', 'name email')
+      .populate({
+        path: 'driver',
+        populate: { path: 'user', select: 'name' }
+      });
+
+    if (populatedBooking && populatedBooking.user) {
+      if (status === 'completed') {
+        const tripDetails = {
+          tripId: populatedBooking._id,
+          pickupLocation: populatedBooking.pickupLocation,
+          destination: populatedBooking.destinationLocation,
+          driverName: populatedBooking.driver.user.name,
+          vehicleInfo: `${populatedBooking.driver.vehicle.color} ${populatedBooking.driver.vehicle.make}`,
+          actualFare: populatedBooking.price.amount,
+          paymentMethod: populatedBooking.payment.method || 'Cash',
+          completionTime: new Date().toLocaleString(),
+        };
+        await EmailService.sendTripCompletionEmail(
+          populatedBooking.user.email,
+          populatedBooking.user.name,
+          tripDetails
+        );
+      } else {
+        const bookingData = {
+          bookingId: populatedBooking._id,
+          destination: populatedBooking.destinationLocation,
+        };
+        await EmailService.sendRideStatusUpdateEmail(
+          populatedBooking.user.email,
+          populatedBooking.user.name,
+          status,
+          bookingData
+        );
+      }
+    }
+  } catch (emailError) {
+    console.error('Error sending status update email:', emailError.message);
   }
 
   res.json({

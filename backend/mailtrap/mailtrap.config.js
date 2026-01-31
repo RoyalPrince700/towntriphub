@@ -23,7 +23,7 @@ if (isConfigured) {
 }
 
 const sender = {
-  email: 'noreply@towntriphub.com',
+  email: process.env.MAILTRAP_FROM || 'noreply@www.towntriphub.com',
   name: 'TownTripHub',
 };
 

@@ -129,7 +129,7 @@ class EmailService {
   async sendTripCompletionEmail(toEmail, userName, tripDetails) {
     if (!isConfigured || !client) {
       console.log(`[Email Skipped] Trip completion email to ${toEmail} - Mailtrap not configured`);
-      return; // Don't throw error, just skip sending
+      return;
     }
 
     try {
@@ -146,7 +146,124 @@ class EmailService {
       console.log(`Trip completion email sent to ${toEmail}`);
     } catch (error) {
       console.error('Error sending trip completion email:', error);
-      throw new Error('Failed to send trip completion email');
+    }
+  }
+
+  /**
+   * Send new booking notification to Admin
+   * @param {Object} bookingDetails - Booking information
+   */
+  async sendAdminBookingNotification(bookingDetails) {
+    if (!isConfigured || !client) {
+      console.log('[Email Skipped] Admin booking notification - Mailtrap not configured');
+      return;
+    }
+
+    try {
+      const adminEmail = process.env.ADMIN_EMAIL || 'admin@towntriphub.com';
+      const adminTemplate = require('./emailtemplate').getAdminBookingNotificationTemplate(bookingDetails);
+
+      await client.send({
+        from: sender,
+        to: [{ email: adminEmail }],
+        subject: `[New Booking] ${bookingDetails.type.toUpperCase()} - ${bookingDetails.bookingId}`,
+        html: adminTemplate,
+        category: 'Admin Notification',
+      });
+
+      console.log(`Admin booking notification sent to ${adminEmail}`);
+    } catch (error) {
+      console.error('Error sending admin booking notification:', error);
+    }
+  }
+
+  /**
+   * Send driver assignment notification to Driver
+   * @param {string} toEmail - Driver's email
+   * @param {string} driverName - Driver's name
+   * @param {Object} userDetails - User information
+   * @param {Object} bookingDetails - Booking information
+   */
+  async sendDriverAssignmentNotification(toEmail, driverName, userDetails, bookingDetails) {
+    if (!isConfigured || !client) {
+      console.log(`[Email Skipped] Driver assignment email to ${toEmail} - Mailtrap not configured`);
+      return;
+    }
+
+    try {
+      const driverTemplate = require('./emailtemplate').getDriverAssignmentNotificationTemplate(driverName, userDetails, bookingDetails);
+
+      await client.send({
+        from: sender,
+        to: [{ email: toEmail }],
+        subject: 'TownTripHub - New Assignment Assigned',
+        html: driverTemplate,
+        category: 'Driver Assignment',
+      });
+
+      console.log(`Driver assignment email sent to ${toEmail}`);
+    } catch (error) {
+      console.error('Error sending driver assignment email:', error);
+    }
+  }
+
+  /**
+   * Send driver details to User upon assignment
+   * @param {string} toEmail - User's email
+   * @param {string} userName - User's name
+   * @param {Object} driverDetails - Driver information
+   * @param {Object} bookingDetails - Booking information
+   */
+  async sendUserAssignmentNotification(toEmail, userName, driverDetails, bookingDetails) {
+    if (!isConfigured || !client) {
+      console.log(`[Email Skipped] User assignment email to ${toEmail} - Mailtrap not configured`);
+      return;
+    }
+
+    try {
+      const userTemplate = require('./emailtemplate').getUserAssignmentNotificationTemplate(userName, driverDetails, bookingDetails);
+
+      await client.send({
+        from: sender,
+        to: [{ email: toEmail }],
+        subject: 'TownTripHub - Driver Assigned to Your Booking',
+        html: userTemplate,
+        category: 'User Assignment',
+      });
+
+      console.log(`User assignment email sent to ${toEmail}`);
+    } catch (error) {
+      console.error('Error sending user assignment email:', error);
+    }
+  }
+
+  /**
+   * Send ride status update notification to User
+   * @param {string} toEmail - User's email
+   * @param {string} userName - User's name
+   * @param {string} status - New status
+   * @param {Object} bookingDetails - Booking information
+   */
+  async sendRideStatusUpdateEmail(toEmail, userName, status, bookingDetails) {
+    if (!isConfigured || !client) {
+      console.log(`[Email Skipped] Status update email to ${toEmail} - Mailtrap not configured`);
+      return;
+    }
+
+    try {
+      const statusTemplate = require('./emailtemplate').getRideStatusUpdateTemplate(userName, status, bookingDetails);
+
+      await client.send({
+        from: sender,
+        to: [{ email: toEmail }],
+        subject: `TownTripHub - Booking Update: ${status.replace(/_/g, ' ').toUpperCase()}`,
+        html: statusTemplate,
+        category: 'Status Update',
+      });
+
+      console.log(`Status update email sent to ${toEmail}`);
+    } catch (error) {
+      console.error('Error sending status update email:', error);
     }
   }
 }
