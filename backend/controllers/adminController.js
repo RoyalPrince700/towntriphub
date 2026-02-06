@@ -153,7 +153,14 @@ const getAllUsers = asyncHandler(async (req, res) => {
   const query = {};
 
   if (status) query.isEmailVerified = status === 'verified';
-  if (role) query.role = role;
+  
+  if (role) {
+    query.role = role;
+  } else {
+    // By default, exclude driver and logistics roles in User Management
+    query.role = { $in: ['user', 'admin'] };
+  }
+
   if (search) {
     query.$or = [
       { name: { $regex: search, $options: 'i' } },
@@ -212,6 +219,37 @@ const updateUserStatus = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Update user role
+// @route   PUT /api/admin/users/:userId/role
+// @access  Private (Admin)
+const updateUserRole = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const { role } = req.body;
+
+  if (!['user', 'admin'].includes(role)) {
+    return res.status(400).json({ message: 'Invalid role. Only user and admin are allowed.' });
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+
+  // Prevent admin from changing their own role (optional but safer)
+  if (user._id.toString() === req.user._id.toString()) {
+    return res.status(400).json({ message: 'You cannot change your own role' });
+  }
+
+  user.role = role;
+  await user.save();
+
+  res.json({
+    success: true,
+    data: user,
+    message: `User role updated to ${role}`,
+  });
+});
+
 // @desc    Get system settings
 // @route   GET /api/admin/settings
 // @access  Private (Admin)
@@ -261,6 +299,7 @@ module.exports = {
   getAdminStats,
   getAllUsers,
   updateUserStatus,
+  updateUserRole,
   getSystemSettings,
   updateSystemSettings,
 };

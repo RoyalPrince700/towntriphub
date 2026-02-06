@@ -19,7 +19,7 @@ const Overview = ({ stats, assignments = [], loading, error }) => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
         <div className="bg-white rounded-lg shadow p-4 lg:p-6">
           <div className="flex items-center">
-            <Package className="h-6 w-6 lg:h-8 lg:w-8 text-indigo-600" />
+            <Package className="h-6 w-6 lg:h-8 lg:w-8 text-purple-600" />
             <div className="ml-3 lg:ml-4">
               <p className="text-xs lg:text-sm font-medium text-gray-600">Deliveries Completed</p>
               <p className="text-lg lg:text-xl font-bold text-gray-900">{completedDeliveries}</p>

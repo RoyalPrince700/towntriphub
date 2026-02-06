@@ -47,7 +47,7 @@ const RidesHistory = () => {
       <div className="bg-white rounded-lg shadow-lg p-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900 mb-2 sm:mb-0">Ride History</h2>
-          <button className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+          <button className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
             <Filter className="h-4 w-4 mr-2" />
             Filter
           </button>
@@ -56,7 +56,7 @@ const RidesHistory = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
-            <select className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <select className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
               <option>Last 7 days</option>
               <option>Last 30 days</option>
               <option>Last 3 months</option>
@@ -66,7 +66,7 @@ const RidesHistory = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-            <select className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <select className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
               <option>All rides</option>
               <option>Completed</option>
               <option>Cancelled</option>
@@ -75,7 +75,7 @@ const RidesHistory = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Sort by</label>
-            <select className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <select className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
               <option>Newest first</option>
               <option>Oldest first</option>
               <option>Highest fare</option>
@@ -157,7 +157,7 @@ const RidesHistory = () => {
             <button className="px-3 py-1 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
               Previous
             </button>
-            <button className="px-3 py-1 text-sm bg-indigo-600 text-white rounded-lg">
+            <button className="px-3 py-1 text-sm bg-purple-600 text-white rounded-lg">
               1
             </button>
             <button className="px-3 py-1 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">

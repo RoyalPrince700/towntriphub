@@ -23,10 +23,35 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const stored = getStoredAuth();
-    setToken(stored.token);
-    setUser(stored.user);
-    setLoading(false);
+    const initializeAuth = async () => {
+      const stored = getStoredAuth();
+      setToken(stored.token);
+
+      if (stored.token && stored.user) {
+        // For existing users with old JWT tokens, ensure we have complete user data
+        if (!stored.user.email) {
+          // User object is missing email (likely from old JWT), fetch from server
+          try {
+            const res = await api.get('/auth/profile');
+            const data = res.data;
+            const updatedUser = { ...stored.user, ...data.user };
+            setUser(updatedUser);
+            setStoredAuth({ token: stored.token, user: updatedUser });
+          } catch (error) {
+            console.warn('Failed to refresh user data for existing user:', error);
+            setUser(stored.user);
+          }
+        } else {
+          setUser(stored.user);
+        }
+      } else {
+        setUser(stored.user);
+      }
+
+      setLoading(false);
+    };
+
+    initializeAuth();
   }, []);
 
   const saveAuth = (next) => {

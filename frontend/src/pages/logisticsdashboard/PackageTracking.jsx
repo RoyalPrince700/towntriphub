@@ -13,7 +13,7 @@ const PackageTracking = ({ assignments = [], loading, onUpdateStatus }) => {
       case 'driver_en_route':
         return 'bg-blue-100 text-blue-800';
       case 'picked_up':
-        return 'bg-indigo-100 text-indigo-800';
+        return 'bg-purple-100 text-purple-800';
       case 'driver_assigned':
         return 'bg-yellow-100 text-yellow-800';
       default:
@@ -74,7 +74,7 @@ const PackageTracking = ({ assignments = [], loading, onUpdateStatus }) => {
           <h2 className="text-xl font-bold text-gray-900">Active Deliveries</h2>
           {loading && (
             <div className="flex items-center text-sm text-gray-500">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600 mr-2"></div>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600 mr-2"></div>
               Refreshing...
             </div>
           )}
@@ -99,8 +99,8 @@ const PackageTracking = ({ assignments = [], loading, onUpdateStatus }) => {
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center space-x-3">
-                            <div className="p-2 bg-indigo-50 rounded-lg">
-                              <Package className="h-5 w-5 text-indigo-600" />
+                            <div className="p-2 bg-purple-50 rounded-lg">
+                              <Package className="h-5 w-5 text-purple-600" />
                             </div>
                             <div>
                               <h3 className="text-lg font-bold text-gray-900">
@@ -154,19 +154,19 @@ const PackageTracking = ({ assignments = [], loading, onUpdateStatus }) => {
                         </div>
 
                         {/* Customer Info */}
-                        <div className="flex items-center justify-between p-3 bg-indigo-50 rounded-lg mb-5">
+                        <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg mb-5">
                           <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-indigo-200 rounded-full flex items-center justify-center text-indigo-700 font-bold text-sm">
+                            <div className="w-8 h-8 bg-purple-200 rounded-full flex items-center justify-center text-purple-700 font-bold text-sm">
                               {pkg.user?.name?.charAt(0) || 'U'}
                             </div>
                             <div>
-                              <p className="text-xs font-bold text-indigo-900">{pkg.user?.name}</p>
-                              <p className="text-[10px] text-indigo-700">{pkg.user?.phoneNumber || 'No phone'}</p>
+                              <p className="text-xs font-bold text-purple-900">{pkg.user?.name}</p>
+                              <p className="text-[10px] text-purple-700">{pkg.user?.phoneNumber || 'No phone'}</p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-[10px] font-bold text-indigo-900 uppercase">Payment</p>
-                            <p className="text-xs font-bold text-indigo-700">D{pkg.price?.amount || 0} • {pkg.payment?.method?.toUpperCase() || 'CASH'}</p>
+                            <p className="text-[10px] font-bold text-purple-900 uppercase">Payment</p>
+                            <p className="text-xs font-bold text-purple-700">D{pkg.price?.amount || 0} • {pkg.payment?.method?.toUpperCase() || 'CASH'}</p>
                           </div>
                         </div>
 
@@ -178,7 +178,7 @@ const PackageTracking = ({ assignments = [], loading, onUpdateStatus }) => {
                             className={`w-full flex items-center justify-center space-x-2 py-3 rounded-xl font-bold text-white transition-all duration-300 ${
                               isUpdating 
                                 ? 'bg-gray-400 cursor-not-allowed' 
-                                : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-lg active:transform active:scale-95'
+                                : 'bg-purple-600 hover:bg-purple-700 hover:shadow-lg active:transform active:scale-95'
                             }`}
                           >
                             {isUpdating ? (

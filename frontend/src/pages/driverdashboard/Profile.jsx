@@ -6,7 +6,7 @@ const Profile = ({ user }) => {
     <div className="bg-white rounded-lg shadow-lg p-4 lg:p-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
         <h2 className="text-base lg:text-lg font-semibold text-gray-900 mb-2 sm:mb-0">Driver Profile</h2>
-        <button className="flex items-center text-indigo-600 hover:text-indigo-800 transition-colors">
+        <button className="flex items-center text-purple-600 hover:text-purple-800 transition-colors">
           <Settings className="h-4 w-4 mr-2" />
           Edit Profile
         </button>
@@ -114,19 +114,19 @@ const Profile = ({ user }) => {
           <div className="space-y-3">
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <span className="text-sm text-gray-700">Email Notifications</span>
-              <div className="w-10 h-5 bg-indigo-600 rounded-full relative">
+              <div className="w-10 h-5 bg-purple-600 rounded-full relative">
                 <div className="w-4 h-4 bg-white rounded-full absolute right-0.5 top-0.5"></div>
               </div>
             </div>
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <span className="text-sm text-gray-700">SMS Notifications</span>
-              <div className="w-10 h-5 bg-indigo-600 rounded-full relative">
+              <div className="w-10 h-5 bg-purple-600 rounded-full relative">
                 <div className="w-4 h-4 bg-white rounded-full absolute right-0.5 top-0.5"></div>
               </div>
             </div>
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <span className="text-sm text-gray-700">Ride Request Alerts</span>
-              <div className="w-10 h-5 bg-indigo-600 rounded-full relative">
+              <div className="w-10 h-5 bg-purple-600 rounded-full relative">
                 <div className="w-4 h-4 bg-white rounded-full absolute right-0.5 top-0.5"></div>
               </div>
             </div>

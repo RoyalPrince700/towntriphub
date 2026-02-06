@@ -26,7 +26,7 @@ const AdminHeader = ({ user, onMenuClick }) => {
             {/* Admin badge - Hidden on mobile, shown in sidebar instead */}
             <div className="hidden lg:flex items-center px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
               <Shield className="h-3 w-3 mr-1" />
-              Admin
+              {user?.email ? user.email.split('@')[0] : 'Admin'}
             </div>
 
             <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
@@ -35,11 +35,11 @@ const AdminHeader = ({ user, onMenuClick }) => {
 
             <div className="flex items-center space-x-3">
               <div className="text-right hidden sm:block">
-                <div className="text-sm font-medium text-gray-900">{user?.name}</div>
+                <div className="text-sm font-medium text-gray-900">{user?.email ? user.email.split('@')[0] : user?.name}</div>
                 <div className="text-xs text-gray-500">{user?.email}</div>
               </div>
-              <div className="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                {user?.name?.charAt(0).toUpperCase()}
+              <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                {user?.email ? user.email[0].toUpperCase() : (user?.name?.charAt(0).toUpperCase() || 'A')}
               </div>
             </div>
           </div>

@@ -119,7 +119,7 @@ const LogisticsManagement = () => {
       pending: { color: 'bg-yellow-100 text-yellow-800', label: 'Pending' },
       driver_assigned: { color: 'bg-blue-100 text-blue-800', label: 'Personnel Assigned' },
       driver_en_route: { color: 'bg-purple-100 text-purple-800', label: 'En Route' },
-      picked_up: { color: 'bg-indigo-100 text-indigo-800', label: 'Picked Up' },
+      picked_up: { color: 'bg-purple-100 text-purple-800', label: 'Picked Up' },
       in_transit: { color: 'bg-cyan-100 text-cyan-800', label: 'In Transit' },
       completed: { color: 'bg-green-100 text-green-800', label: 'Completed' },
       cancelled: { color: 'bg-red-100 text-red-800', label: 'Cancelled' },

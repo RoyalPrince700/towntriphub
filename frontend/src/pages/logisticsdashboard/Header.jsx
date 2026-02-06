@@ -19,11 +19,11 @@ const Header = ({ user, logout, onMenuClick }) => {
               <h1 className="text-lg lg:text-xl font-bold text-gray-900">TownTripHub</h1>
               <div className="flex items-center mt-1">
                 <p className="text-xs lg:text-sm text-gray-600">
-                  Logistics Dashboard - Welcome back, {user?.name ? user.name.split(' ')[0] : user?.email?.split('@')[0]}
+                  Logistics Dashboard - Welcome back, {user?.email ? user.email.split('@')[0] : (user?.name ? user.name.split(' ')[0] : 'Personnel')}
                 </p>
                 {user?.role === 'logistics' && (
                   <span className="ml-2 bg-blue-100 text-blue-800 text-[10px] lg:text-xs px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
-                    Logistics
+                    {user?.email ? user.email.split('@')[0] : 'Logistics'}
                   </span>
                 )}
               </div>

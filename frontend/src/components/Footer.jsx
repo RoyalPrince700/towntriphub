@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Linkedin, Mail, MapPin, Phone } from 'lucide-react';
+import towntriphublogo from '../assets/towntriphublogo.png';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -11,12 +12,12 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
           <div className="space-y-6">
             <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">T</span>
-              </div>
-              <span className="text-2xl font-bold text-gray-900">
-                TownTrip<span className="text-indigo-600">Hub</span>
-              </span>
+              <img
+                src={towntriphublogo}
+                alt="TownTripHub Logo"
+                className="w-8 h-8 rounded-lg"
+              />
+              
             </Link>
             <p className="text-gray-500 leading-relaxed">
               Connecting communities across The Gambia with safe, reliable, and professional transportation services.

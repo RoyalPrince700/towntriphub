@@ -42,7 +42,7 @@ export default function Register() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6">
-      <Link to="/" className="mb-4 text-2xl font-bold text-indigo-600 hover:text-indigo-700 transition-colors">TownTripHub</Link>
+      <Link to="/" className="mb-4 text-2xl font-bold text-purple-600 hover:text-purple-700 transition-colors">TownTripHub</Link>
       <div className="w-full max-w-md bg-white shadow rounded-lg p-6">
         <h1 className="text-2xl font-semibold text-gray-900 mb-4">Create your account</h1>
         {message && <div className="mb-3 text-green-600 text-sm">{message}</div>}
@@ -55,7 +55,7 @@ export default function Register() {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
               required
             />
           </div>
@@ -65,7 +65,7 @@ export default function Register() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
               required
             />
           </div>
@@ -76,7 +76,7 @@ export default function Register() {
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 required
               />
               <button
@@ -108,7 +108,7 @@ export default function Register() {
                 type={showConfirmPassword ? 'text' : 'password'}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 required
               />
               <button
@@ -132,7 +132,7 @@ export default function Register() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white rounded py-2 hover:bg-blue-700 disabled:opacity-50"
+            className="w-full bg-purple-600 text-white rounded py-2 hover:bg-purple-700 disabled:opacity-50"
           >
             {loading ? 'Creating...' : 'Create account'}
           </button>
@@ -169,7 +169,7 @@ export default function Register() {
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
             Already have an account?{' '}
-            <Link className="text-blue-600 hover:underline font-medium" to="/login">
+            <Link className="text-purple-600 hover:underline font-medium" to="/login">
               Sign in here
             </Link>
           </p>

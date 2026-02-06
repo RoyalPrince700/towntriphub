@@ -316,11 +316,11 @@ const DriverDashboard = () => {
               </h1>
               <div className="flex items-center mt-2">
                 <p className="text-gray-600">
-                  Welcome back, {user?.name ? user.name.split(' ')[0] : user?.email?.split('@')[0]}
+                  Welcome back, {user?.email ? user.email.split('@')[0] : (user?.name ? user.name.split(' ')[0] : 'Driver')}
                 </p>
                 {user?.role === 'driver' && (
                   <span className="ml-3 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wider">
-                    Driver
+                    {user?.email ? user.email.split('@')[0] : 'Driver'}
                   </span>
                 )}
               </div>

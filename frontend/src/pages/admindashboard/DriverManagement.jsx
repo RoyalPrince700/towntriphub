@@ -478,13 +478,13 @@ const DriverManagement = () => {
 
                 <div className="mt-6">
                   <h4 className="text-md font-semibold text-gray-800 mb-3 flex items-center">
-                    <MessageSquare className="h-4 w-4 mr-2 text-indigo-600" />
+                    <MessageSquare className="h-4 w-4 mr-2 text-purple-600" />
                     Recent Rider Reviews
                   </h4>
 
                   {reviewsLoading ? (
                     <div className="flex items-center space-x-2 text-sm text-gray-500">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600"></div>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
                       <span>Loading reviews...</span>
                     </div>
                   ) : reviewsError ? (

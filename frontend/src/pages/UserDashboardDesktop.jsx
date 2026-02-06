@@ -7,8 +7,8 @@ import Overview from './userdashboard/Overview';
 import RideBookingFlow from './userdashboard/RideBookingFlow';
 import DeliveryBookingFlow from './userdashboard/DeliveryBookingFlow';
 import Profile from './userdashboard/Profile';
+import Settings from './userdashboard/Settings';
 import BookingHistory from './userdashboard/BookingHistory';
-import { Settings } from 'lucide-react';
 import { getBookingStats, getUserBookings } from '../services/bookingService';
 import { getDriverProfile } from '../services/driverService';
 import { getLogisticsProfile } from '../services/logisticsService';
@@ -76,72 +76,78 @@ export default function UserDashboardDesktop() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Fixed Desktop Header */}
-      <div className="fixed top-0 left-0 right-0 z-40">
-        <Header user={user} logout={logout} onMenuClick={() => setIsMobileSidebarOpen(true)} />
-      </div>
+    <div className="min-h-screen bg-[#FDFDFF]">
+      {/* Header */}
+      <Header user={user} logout={logout} onMenuClick={() => setIsMobileSidebarOpen(true)} />
 
-      {/* Mobile Sidebar */}
-      <Sidebar
-        user={user}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        activeService={activeService}
-        setActiveService={setActiveService}
-        isMobile={true}
-        isOpen={isMobileSidebarOpen}
-        onClose={() => setIsMobileSidebarOpen(false)}
-      />
+      <div className="flex">
+        {/* Desktop Sidebar */}
+        <div className="hidden lg:block">
+          <Sidebar
+            user={user}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            activeService={activeService}
+            setActiveService={setActiveService}
+            isMobile={false}
+            isCollapsed={isCollapsed}
+            setIsCollapsed={setIsCollapsed}
+          />
+        </div>
 
-      {/* Fixed Desktop Sidebar */}
-      <div className="fixed left-0 top-16 bottom-0 z-30 hidden lg:block">
+        {/* Mobile Sidebar */}
         <Sidebar
           user={user}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           activeService={activeService}
           setActiveService={setActiveService}
-          isMobile={false}
-          isCollapsed={isCollapsed}
-          setIsCollapsed={setIsCollapsed}
+          isMobile={true}
+          isOpen={isMobileSidebarOpen}
+          onClose={() => setIsMobileSidebarOpen(false)}
         />
-      </div>
 
-      {/* Main Content - Scrollable area */}
-      <div className={`mt-16 min-h-screen transition-all duration-300 ease-in-out ${
-        isCollapsed ? 'lg:ml-16' : 'lg:ml-80'
-      } ml-0`}>
-        <div className="p-6 overflow-y-auto h-full">
-          {activeTab === 'overview' && (
-            <Overview 
-              stats={stats} 
-              recentBookings={recentBookings} 
-              driverProfile={driverProfile}
-              logisticsProfile={logisticsProfile}
-            />
-          )}
+        {/* Main Content */}
+        <main className={`flex-1 transition-all duration-300 ease-in-out`}>
+          <div className="max-w-6xl mx-auto p-4 md:p-8 lg:p-12">
+            {activeTab === 'overview' && (
+              <Overview 
+                stats={stats} 
+                recentBookings={recentBookings} 
+                driverProfile={driverProfile}
+                logisticsProfile={logisticsProfile}
+              />
+            )}
 
-          {activeTab === 'ride' && <RideBookingFlow user={user} />}
-
-          {activeTab === 'delivery' && <DeliveryBookingFlow user={user} />}
-
-          {activeTab === 'history' && <BookingHistory stats={stats} />}
-
-          {activeTab === 'profile' && <Profile user={user} />}
-
-          {activeTab === 'settings' && (
-            <div className="bg-white rounded-lg shadow-lg p-4">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Settings</h2>
-              <div className="text-center py-8">
-                <Settings className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                <h3 className="text-base font-medium text-gray-900 mb-2">Settings</h3>
-                <p className="text-gray-500 text-sm">Account settings and preferences</p>
-                <p className="text-xs text-gray-400 mt-2">Coming soon...</p>
+            {activeTab === 'ride' && (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <RideBookingFlow user={user} />
               </div>
-            </div>
-          )}
-        </div>
+            )}
+
+            {activeTab === 'delivery' && (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <DeliveryBookingFlow user={user} />
+              </div>
+            )}
+
+            {activeTab === 'history' && (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <BookingHistory stats={stats} />
+              </div>
+            )}
+
+            {activeTab === 'profile' && (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <Profile user={user} />
+              </div>
+            )}
+
+            {activeTab === 'settings' && (
+              <Settings />
+            )}
+          </div>
+        </main>
       </div>
     </div>
   );

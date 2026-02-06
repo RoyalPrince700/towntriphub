@@ -6,8 +6,8 @@ const Features = () => {
     {
       title: "Fast & Reliable",
       description: "Get picked up within minutes with our network of verified drivers across The Gambia.",
-      icon: <Zap className="w-6 h-6 text-indigo-600" />,
-      color: "bg-indigo-50"
+      icon: <Zap className="w-6 h-6 text-purple-600" />,
+      color: "bg-purple-50"
     },
     {
       title: "Verified Drivers",
@@ -45,7 +45,7 @@ const Features = () => {
     <section className="py-24 bg-white relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center mb-16">
-          <h2 className="text-indigo-600 font-semibold tracking-wide uppercase text-sm mb-2">Features</h2>
+          <h2 className="text-purple-600 font-semibold tracking-wide uppercase text-sm mb-2">Features</h2>
           <h3 className="text-3xl md:text-5xl font-extrabold text-gray-900 mb-4">
             Why Choose TownTripHub?
           </h3>
@@ -59,7 +59,7 @@ const Features = () => {
           {features.map((feature, index) => (
             <div 
               key={index}
-              className="group p-8 rounded-3xl bg-white border border-gray-100 hover:border-indigo-100 hover:shadow-2xl hover:shadow-indigo-50 transition-all duration-300 transform hover:-translate-y-1"
+              className="group p-8 rounded-3xl bg-white border border-gray-100 hover:border-purple-100 hover:shadow-2xl hover:shadow-purple-50 transition-all duration-300 transform hover:-translate-y-1"
             >
               <div className={`w-14 h-14 ${feature.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
                 {feature.icon}
@@ -74,7 +74,7 @@ const Features = () => {
       </div>
       
       {/* Background decoration */}
-      <div className="absolute top-1/2 left-0 -translate-y-1/2 w-64 h-64 bg-indigo-50 rounded-full blur-3xl -z-10 opacity-50"></div>
+      <div className="absolute top-1/2 left-0 -translate-y-1/2 w-64 h-64 bg-purple-50 rounded-full blur-3xl -z-10 opacity-50"></div>
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-50 rounded-full blur-3xl -z-10 opacity-50"></div>
     </section>
   );

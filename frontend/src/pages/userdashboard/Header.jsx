@@ -1,7 +1,8 @@
 import React from 'react';
-import { Bell, LogOut, Menu, Shield, RefreshCw, Car } from 'lucide-react';
+import { Bell, LogOut, Menu, Shield, RefreshCw, Car, User, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import towntriphublogo from '../../assets/towntriphublogo.png';
 
 const Header = ({ user, logout, onMenuClick }) => {
   const navigate = useNavigate();
@@ -18,7 +19,6 @@ const Header = ({ user, logout, onMenuClick }) => {
   const handleRefreshUser = async () => {
     try {
       await refreshUser();
-      // Optionally show a success message or reload the page
       window.location.reload();
     } catch (error) {
       console.error('Failed to refresh user data:', error);
@@ -26,88 +26,97 @@ const Header = ({ user, logout, onMenuClick }) => {
   };
 
   return (
-    <div className="bg-white shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-3">
-          <div className="flex items-center">
+    <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 h-16 flex items-center sticky top-0 z-40">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center space-x-4">
             {/* Mobile menu button */}
             <button
               onClick={onMenuClick}
-              className="lg:hidden p-2 mr-3 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+              className="lg:hidden p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all"
             >
-              <Menu className="h-6 w-6" />
+              <Menu size={24} />
             </button>
 
-            <div>
-              <h1 className="text-lg lg:text-xl font-bold text-gray-900">TownTripHub</h1>
-              <div className="flex items-center mt-1">
-                <p className="text-xs lg:text-sm text-gray-600">
-                  Welcome back, {user?.name ? user.name.split(' ')[0] : user?.email?.split('@')[0]}
-                </p>
-                {user?.role === 'driver' && (
-                  <span className="ml-2 bg-green-100 text-green-800 text-[10px] lg:text-xs px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
-                    Driver
-                  </span>
-                )}
-              </div>
+            <div className="hidden sm:flex items-center space-x-2">
+              <img
+                src={towntriphublogo}
+                alt="TownTripHub Logo"
+                className="w-8 h-8 rounded-lg"
+              />
+           
             </div>
+            
+            <div className="h-6 w-[1px] bg-gray-200 mx-2 hidden sm:block"></div>
+            
+           
           </div>
 
-          <div className="flex items-center space-x-4">
-            {/* Admin button - only show for admin users - Hidden on mobile, shown in sidebar badge instead */}
-            {user?.role === 'admin' && (
+          <div className="flex items-center space-x-2 md:space-x-4">
+            {/* Action Buttons */}
+            <div className="flex items-center space-x-1 md:space-x-2">
+              {user?.role === 'admin' && (
+                <button
+                  onClick={handleAdminClick}
+                  className="hidden md:flex items-center px-3 py-2 rounded-xl bg-red-50 text-red-600 text-sm font-bold hover:bg-red-100 transition-all"
+                >
+                  <Shield size={16} className="mr-2" />
+                  <span>Admin</span>
+                </button>
+              )}
+
+              {user?.role === 'driver' && (
+                <button
+                  onClick={handleDriverClick}
+                  className="hidden md:flex items-center px-3 py-2 rounded-xl bg-green-50 text-green-600 text-sm font-bold hover:bg-green-100 transition-all"
+                >
+                  <Car size={16} className="mr-2" />
+                  <span>Driver Mode</span>
+                </button>
+              )}
+
               <button
-                onClick={handleAdminClick}
-                className="hidden lg:flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                title="Admin Dashboard"
+                onClick={handleRefreshUser}
+                className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all"
+                title="Refresh"
               >
-                <Shield className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Admin</span>
+                <RefreshCw size={20} />
               </button>
-            )}
 
-            {/* Driver button - only show for driver users */}
-            {user?.role === 'driver' && (
+              <button className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all relative">
+                <Bell size={20} />
+                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+              </button>
+            </div>
+
+            <div className="h-8 w-[1px] bg-gray-200"></div>
+
+            {/* Profile Dropdown Simulation */}
+            <div className="flex items-center space-x-3 pl-2">
+              <div className="hidden md:block text-right">
+                <p className="text-sm font-bold text-gray-900 leading-none">
+                  {user?.email ? user.email.split('@')[0] : (user?.name || 'User')}
+                </p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mt-1">
+                  {user?.email ? user.email.split('@')[0] : (user?.role || 'Rider')}
+                </p>
+              </div>
+              <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600 font-bold shadow-sm">
+                {user?.email ? user.email[0].toUpperCase() : (user?.name ? user.name[0].toUpperCase() : <User size={20} />)}
+              </div>
+              
               <button
-                onClick={handleDriverClick}
-                className="flex items-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                title="Driver Dashboard"
+                onClick={logout}
+                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                title="Logout"
               >
-                <Car className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Driver</span>
+                <LogOut size={20} />
               </button>
-            )}
-
-            {/* Refresh user data button */}
-            <button
-              onClick={handleRefreshUser}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
-              title="Refresh user data"
-            >
-              <RefreshCw className="h-5 w-5" />
-            </button>
-
-            <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
-              <Bell className="h-6 w-6" />
-            </button>
-            <button
-              onClick={logout}
-              className="hidden sm:flex items-center px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </button>
-            {/* Mobile logout button */}
-            <button
-              onClick={logout}
-              className="sm:hidden p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
-            >
-              <LogOut className="h-5 w-5" />
-            </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </header>
   );
 };
 

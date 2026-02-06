@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Menu, X, LogOut, User, LayoutDashboard, ChevronRight } from 'lucide-react';
+import towntriphublogo from '../assets/towntriphublogo.png';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -35,14 +36,12 @@ const Navbar = () => {
         <div className="flex justify-between items-center">
           <div className="flex items-center">
             <Link to="/" className="group flex items-center space-x-2">
-              <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center transform group-hover:rotate-6 transition-transform duration-300">
-                <span className="text-white font-bold text-xl">T</span>
-              </div>
-              <span className={`text-2xl font-bold tracking-tight transition-colors duration-300 ${
-                isScrolled ? 'text-gray-900' : 'text-gray-900'
-              }`}>
-                TownTrip<span className="text-indigo-600">Hub</span>
-              </span>
+              <img
+                src={towntriphublogo}
+                alt="TownTripHub Logo"
+                className="w-10 h-10 rounded-xl transform group-hover:rotate-6 transition-transform duration-300"
+              />
+             
             </Link>
           </div>
 
@@ -131,11 +130,11 @@ const Navbar = () => {
               <div className="space-y-3">
                 <div className="px-4 py-2 flex items-center space-x-3">
                   <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
-                    {user.name?.[0] || <User size={20} />}
+                    {user?.email ? user.email[0].toUpperCase() : (user.name?.[0] || <User size={20} />)}
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-gray-900">{user.name}</p>
-                    <p className="text-xs text-gray-500 capitalize">{user.role}</p>
+                    <p className="text-sm font-bold text-gray-900">{user?.email ? user.email.split('@')[0] : (user?.name || 'User')}</p>
+                    <p className="text-xs text-gray-500 capitalize">{user?.email ? user.email.split('@')[0] : user.role}</p>
                   </div>
                 </div>
                 <Link

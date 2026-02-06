@@ -5,12 +5,15 @@ import MobileHomeActions from './userdashboard/MobileHomeActions';
 import RideBookingFlow from './userdashboard/RideBookingFlow';
 import DeliveryBookingFlow from './userdashboard/DeliveryBookingFlow';
 import Profile from './userdashboard/Profile';
+import Settings from './userdashboard/Settings';
 import BookingHistory from './userdashboard/BookingHistory';
 import Overview from './userdashboard/Overview';
-import { Settings, Home, MapPin, Calendar, User, Menu, X, Package } from 'lucide-react';
+import SavedPlacesModal from '../components/SavedPlacesModal';
+import { Settings as SettingsIcon, Home, MapPin, Calendar, User, Menu, X, Package, LogOut } from 'lucide-react';
 import { getBookingStats, getUserBookings } from '../services/bookingService';
 import { getDriverProfile } from '../services/driverService';
 import { getLogisticsProfile } from '../services/logisticsService';
+import towntriphublogo from '../assets/towntriphublogo.png';
 
 export default function UserDashboardMobile() {
   const { user, token, logout } = useAuth();
@@ -21,6 +24,8 @@ export default function UserDashboardMobile() {
   const [recentBookings, setRecentBookings] = useState([]);
   const [driverProfile, setDriverProfile] = useState(null);
   const [logisticsProfile, setLogisticsProfile] = useState(null);
+  const [showSavedPlacesModal, setShowSavedPlacesModal] = useState(false);
+  const [selectedSavedPlace, setSelectedSavedPlace] = useState(null);
 
   useEffect(() => {
     fetchUserStats();
@@ -28,6 +33,13 @@ export default function UserDashboardMobile() {
     fetchDriverStatus();
     fetchLogisticsStatus();
   }, []);
+
+  // Clear selected saved place when navigating away from ride tab
+  useEffect(() => {
+    if (activeTab !== 'ride') {
+      setSelectedSavedPlace(null);
+    }
+  }, [activeTab]);
 
   const fetchUserStats = async () => {
     try {
@@ -84,7 +96,7 @@ export default function UserDashboardMobile() {
   // Menu items for hamburger dropdown
   const hamburgerMenuItems = [
     { id: 'profile', label: 'Profile', icon: User },
-    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'settings', label: 'Settings', icon: SettingsIcon },
   ];
 
   const currentTab = navigationTabs.find(tab => tab.id === activeTab);
@@ -96,71 +108,88 @@ export default function UserDashboardMobile() {
     setActiveTab(serviceType); // Navigate to the specific service tab (ride or delivery)
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Mobile Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <IconComponent className="h-5 w-5 text-indigo-600" />
-              <div>
-                <h1 className="text-lg font-semibold text-gray-900">{currentTab?.label}</h1>
-                <p className="text-xs text-gray-600">
-                  Welcome back, {user?.name ? user.name.split(' ')[0] : user?.email?.split('@')[0]}
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowHamburgerMenu(!showHamburgerMenu)}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
-            >
-              {showHamburgerMenu ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
-          </div>
+  // Handle quick action selection from home actions
+  const handleQuickActionSelect = (actionType) => {
+    if (actionType === 'savedPlaces') {
+      // Show saved places modal
+      setShowSavedPlacesModal(true);
+    } else if (actionType === 'schedule') {
+      // Navigate to ride booking for scheduling
+      setActiveService('ride');
+      setActiveTab('ride');
+    }
+  };
 
-          {/* Hamburger Menu Dropdown */}
-          {showHamburgerMenu && (
-            <div className="mt-3 bg-white border rounded-lg shadow-lg overflow-hidden">
-              {hamburgerMenuItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      setActiveTab(item.id);
-                      setShowHamburgerMenu(false);
-                    }}
-                    className="w-full flex items-center px-4 py-3 text-left hover:bg-gray-50 transition-colors"
-                  >
-                    <Icon className="h-4 w-4 mr-3 text-gray-600" />
-                    <span className="text-sm font-medium text-gray-900">{item.label}</span>
-                  </button>
-                );
-              })}
-              {/* Logout option */}
-              <div className="border-t">
+  // Handle saved place selection from modal
+  const handleSavedPlaceSelect = (place) => {
+    // Store the selected place and navigate to ride booking
+    setSelectedSavedPlace(place);
+    setActiveService('ride');
+    setActiveTab('ride');
+  };
+
+  return (
+    <div className="min-h-screen bg-[#FDFDFF] flex flex-col">
+      {/* Mobile Header */}
+      <div className="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-gray-100 px-4 py-4 flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <img
+            src={towntriphublogo}
+            alt="TownTripHub Logo"
+            className="w-10 h-10 rounded-xl shadow-lg"
+          />
+          <div>
+            <h1 className="text-lg font-black text-gray-900 tracking-tight">{currentTab?.label}</h1>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">
+              Welcome, {user?.email ? user.email.split('@')[0] : (user?.name ? user.name.split(' ')[0] : 'Hero')}
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => setShowHamburgerMenu(!showHamburgerMenu)}
+          className="p-2.5 bg-gray-50 text-gray-500 rounded-xl hover:text-purple-600 transition-colors"
+        >
+          {showHamburgerMenu ? <X size={20} /> : <Menu size={20} />}
+        </button>
+
+        {/* Hamburger Dropdown */}
+        {showHamburgerMenu && (
+          <div className="absolute top-[calc(100%+12px)] right-4 w-56 bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="p-2 space-y-1">
+              {hamburgerMenuItems.map((item) => (
                 <button
+                  key={item.id}
                   onClick={() => {
-                    logout();
+                    setActiveTab(item.id);
                     setShowHamburgerMenu(false);
                   }}
-                  className="w-full flex items-center px-4 py-3 text-left hover:bg-red-50 transition-colors"
+                  className="w-full flex items-center px-4 py-3 text-left rounded-2xl hover:bg-gray-50 text-gray-700 transition-colors"
                 >
-                  <Settings className="h-4 w-4 mr-3 text-red-600" />
-                  <span className="text-sm font-medium text-red-600">Logout</span>
+                  <item.icon size={18} className="mr-3 text-gray-400" />
+                  <span className="text-sm font-bold">{item.label}</span>
                 </button>
-              </div>
+              ))}
+              <div className="h-[1px] bg-gray-100 my-1 mx-2"></div>
+              <button
+                onClick={() => {
+                  logout();
+                  setShowHamburgerMenu(false);
+                }}
+                className="w-full flex items-center px-4 py-3 text-left rounded-2xl hover:bg-red-50 text-red-600 transition-colors"
+              >
+                <LogOut size={18} className="mr-3" />
+                <span className="text-sm font-bold">Logout</span>
+              </button>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 pb-20">
+      <main className="flex-1 overflow-y-auto px-4 py-6 pb-28">
         {activeTab === 'overview' && (
-          <div className="space-y-6">
-            <MobileHomeActions onServiceSelect={handleServiceSelect} />
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <MobileHomeActions onServiceSelect={handleServiceSelect} onQuickActionSelect={handleQuickActionSelect} />
             <Overview 
               stats={stats} 
               recentBookings={recentBookings} 
@@ -170,49 +199,54 @@ export default function UserDashboardMobile() {
           </div>
         )}
 
-        {activeTab === 'ride' && <RideBookingFlow user={user} />}
-
-        {activeTab === 'delivery' && <DeliveryBookingFlow user={user} />}
-
-        {activeTab === 'history' && <BookingHistory stats={stats} />}
-
-        {activeTab === 'profile' && <Profile user={user} />}
-
-        {activeTab === 'settings' && (
-          <div className="bg-white rounded-lg shadow-lg p-3">
-            <h2 className="text-base font-semibold text-gray-900 mb-4">Settings</h2>
-            <div className="text-center py-6">
-              <Settings className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-              <h3 className="text-sm font-medium text-gray-900 mb-2">Settings</h3>
-              <p className="text-gray-500 text-xs">Account settings and preferences</p>
-              <p className="text-xs text-gray-400 mt-2">Coming soon...</p>
-            </div>
+        {(activeTab === 'ride' || activeTab === 'delivery' || activeTab === 'history' || activeTab === 'profile' || activeTab === 'settings') && (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {activeTab === 'ride' && (
+              <RideBookingFlow
+                user={user}
+                prefilledPickup={selectedSavedPlace?.type === 'pickup' ? selectedSavedPlace.address : ''}
+                prefilledDestination={selectedSavedPlace?.type === 'destination' ? selectedSavedPlace.address : ''}
+              />
+            )}
+            {activeTab === 'delivery' && <DeliveryBookingFlow user={user} />}
+            {activeTab === 'history' && <BookingHistory stats={stats} />}
+            {activeTab === 'profile' && <Profile user={user} />}
+            {activeTab === 'settings' && <Settings />}
           </div>
         )}
-      </div>
+      </main>
 
-      {/* Bottom Navigation - Fixed to bottom */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-50">
-        <div className="flex">
-          {navigationTabs.map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 flex flex-col items-center justify-center py-2 px-1 transition-colors ${
-                  activeTab === tab.id
-                    ? 'text-indigo-600 bg-indigo-50'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                <Icon className="h-4 w-4 mb-1" />
-                <span className="text-xs font-medium">{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      {/* Saved Places Modal */}
+      <SavedPlacesModal
+        isOpen={showSavedPlacesModal}
+        onClose={() => setShowSavedPlacesModal(false)}
+        onSelectPlace={handleSavedPlaceSelect}
+      />
+
+      {/* Modern Bottom Navigation */}
+      <nav className="fixed bottom-6 left-6 right-6 h-20 bg-gray-900/95 backdrop-blur-md rounded-[2.5rem] shadow-2xl flex items-center justify-around px-4 z-50 border border-white/10">
+        {navigationTabs.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`relative flex flex-col items-center justify-center w-14 h-14 transition-all duration-300 ${
+                isActive ? 'text-white scale-110' : 'text-gray-500 hover:text-gray-300'
+              }`}
+            >
+              {isActive && (
+                <div className="absolute inset-0 bg-purple-600 rounded-2xl -z-10 shadow-lg shadow-purple-500/40"></div>
+              )}
+              <Icon size={20} />
+              <span className={`text-[10px] font-black uppercase mt-1 tracking-tighter ${isActive ? 'block' : 'hidden'}`}>
+                {tab.label}
+              </span>
+            </button>
+          );
+        })}
+      </nav>
     </div>
   );
 }

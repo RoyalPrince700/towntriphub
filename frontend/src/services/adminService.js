@@ -94,6 +94,11 @@ export const updateUserStatus = async (userId, status) => {
   return response.data;
 };
 
+export const updateUserRole = async (userId, role) => {
+  const response = await api.put(`/admin/users/${userId}/role`, { role });
+  return response.data;
+};
+
 export default {
   getAdminStats,
   getAllBookings,
@@ -109,4 +114,5 @@ export default {
   updateLogisticsSuspension,
   getAllUsers,
   updateUserStatus,
+  updateUserRole,
 };

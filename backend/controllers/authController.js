@@ -62,7 +62,7 @@ const login = asyncHandler(async (req, res) => {
   const isMatch = await user.matchPassword(password);
   if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
 
-  const token = signToken({ id: user._id, role: user.role });
+  const token = signToken({ id: user._id, name: user.name, email: user.email, role: user.role, isEmailVerified: user.isEmailVerified, avatarUrl: user.avatarUrl });
   res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role, isEmailVerified: user.isEmailVerified } });
 });
 

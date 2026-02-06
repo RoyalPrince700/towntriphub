@@ -60,7 +60,7 @@ const Sidebar = ({
               }}
               className={`w-full flex items-center px-3 py-3 text-left rounded-lg transition-colors ${
                 activeTab === 'overview'
-                  ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                  ? 'bg-purple-50 text-purple-700 border border-purple-200'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
             >
@@ -79,7 +79,7 @@ const Sidebar = ({
               }}
               className={`w-full flex items-center px-3 py-3 text-left rounded-lg transition-colors ${
                 activeTab === 'earnings'
-                  ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                  ? 'bg-purple-50 text-purple-700 border border-purple-200'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
             >
@@ -98,7 +98,7 @@ const Sidebar = ({
               }}
               className={`w-full flex items-center px-3 py-3 text-left rounded-lg transition-colors ${
                 activeTab === 'rides'
-                  ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                  ? 'bg-purple-50 text-purple-700 border border-purple-200'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
             >
@@ -117,7 +117,7 @@ const Sidebar = ({
               }}
               className={`w-full flex items-center px-3 py-3 text-left rounded-lg transition-colors ${
                 activeTab === 'vehicle'
-                  ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                  ? 'bg-purple-50 text-purple-700 border border-purple-200'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
             >
@@ -140,7 +140,7 @@ const Sidebar = ({
                 }}
                 className={`w-full flex items-center px-3 py-3 text-left rounded-lg transition-colors ${
                   activeTab === 'profile'
-                    ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                    ? 'bg-purple-50 text-purple-700 border border-purple-200'
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}
               >
@@ -159,7 +159,7 @@ const Sidebar = ({
                 }}
                 className={`w-full flex items-center px-3 py-3 text-left rounded-lg transition-colors ${
                   activeTab === 'settings'
-                    ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                    ? 'bg-purple-50 text-purple-700 border border-purple-200'
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}
               >

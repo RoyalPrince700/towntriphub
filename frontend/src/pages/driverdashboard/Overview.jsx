@@ -96,7 +96,7 @@ const Overview = ({ stats }) => {
         <div className="space-y-3 lg:space-y-4">
           <div className="flex items-center p-3 lg:p-4 bg-gray-50 rounded-lg">
             <div className="flex-shrink-0">
-              <MapPin className="h-5 w-5 lg:h-6 lg:w-6 text-indigo-600" />
+              <MapPin className="h-5 w-5 lg:h-6 lg:w-6 text-purple-600" />
             </div>
             <div className="ml-3 lg:ml-4 flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900">Trip to Serrekunda</p>

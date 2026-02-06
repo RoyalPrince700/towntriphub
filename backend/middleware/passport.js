@@ -84,7 +84,7 @@ passport.use(
           await user.save();
         }
 
-        const token = signToken({ id: user._id, role: user.role });
+        const token = signToken({ id: user._id, name: user.name, email: user.email, role: user.role, isEmailVerified: user.isEmailVerified, avatarUrl: user.avatarUrl });
         return done(null, { user, token });
       } catch (err) {
         return done(err);

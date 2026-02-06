@@ -8,7 +8,7 @@ const VehicleManagement = () => {
       <div className="bg-white rounded-lg shadow-lg p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-gray-900">Vehicle Information</h2>
-          <button className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+          <button className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
             <Settings className="h-4 w-4 mr-2" />
             Update Vehicle
           </button>
@@ -140,7 +140,7 @@ const VehicleManagement = () => {
               </span>
             </div>
             <p className="text-sm text-gray-600 mb-3">Expires: December 2026</p>
-            <button className="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
+            <button className="text-purple-600 hover:text-purple-800 text-sm font-medium">
               View Document
             </button>
           </div>
@@ -156,7 +156,7 @@ const VehicleManagement = () => {
               </span>
             </div>
             <p className="text-sm text-gray-600 mb-3">Expires: March 2026</p>
-            <button className="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
+            <button className="text-purple-600 hover:text-purple-800 text-sm font-medium">
               View Document
             </button>
           </div>
@@ -172,7 +172,7 @@ const VehicleManagement = () => {
               </span>
             </div>
             <p className="text-sm text-gray-600 mb-3">Expires: November 2025</p>
-            <button className="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
+            <button className="text-purple-600 hover:text-purple-800 text-sm font-medium">
               View Document
             </button>
           </div>
@@ -188,7 +188,7 @@ const VehicleManagement = () => {
               </span>
             </div>
             <p className="text-sm text-gray-600 mb-3">Expires: June 2026</p>
-            <button className="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
+            <button className="text-purple-600 hover:text-purple-800 text-sm font-medium">
               View Document
             </button>
           </div>

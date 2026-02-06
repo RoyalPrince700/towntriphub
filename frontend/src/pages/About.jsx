@@ -5,14 +5,14 @@ import { MapPin, Users, Shield, Truck, Car, Award, Heart, Star, Phone } from 'lu
 
 const About = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100">
       <Navbar />
 
       {/* Hero Section */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center">
           <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
-            About <span className="text-indigo-600">TownTripHub</span>
+            About <span className="text-purple-600">TownTripHub</span>
           </h1>
           <p className="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
             Connecting The Gambia, one ride at a time. We're revolutionizing transportation
@@ -34,8 +34,8 @@ const About = () => {
 
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {/* Mission Card 1 */}
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
-              <div className="flex items-center justify-center w-12 h-12 bg-indigo-500 rounded-md mb-4">
+            <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-6 border border-blue-200">
+              <div className="flex items-center justify-center w-12 h-12 bg-purple-500 rounded-md mb-4">
                 <MapPin className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Connecting Communities</h3>
@@ -58,7 +58,7 @@ const About = () => {
             </div>
 
             {/* Mission Card 3 */}
-            <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-lg p-6 border border-purple-200">
+            <div className="bg-gradient-to-br from-purple-50 to-purple-50 rounded-lg p-6 border border-purple-200">
               <div className="flex items-center justify-center w-12 h-12 bg-purple-500 rounded-md mb-4">
                 <Heart className="w-6 h-6 text-white" />
               </div>
@@ -99,19 +99,19 @@ const About = () => {
             <div className="bg-white rounded-lg shadow-lg p-8">
               <div className="grid grid-cols-2 gap-6">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-indigo-600">500+</div>
+                  <div className="text-3xl font-bold text-purple-600">500+</div>
                   <div className="text-gray-600">Verified Drivers</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-indigo-600">10K+</div>
+                  <div className="text-3xl font-bold text-purple-600">10K+</div>
                   <div className="text-gray-600">Happy Customers</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-indigo-600">50K+</div>
+                  <div className="text-3xl font-bold text-purple-600">50K+</div>
                   <div className="text-gray-600">Rides Completed</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-indigo-600">98%</div>
+                  <div className="text-3xl font-bold text-purple-600">98%</div>
                   <div className="text-gray-600">Satisfaction Rate</div>
                 </div>
               </div>
@@ -132,9 +132,9 @@ const About = () => {
 
           <div className="grid gap-8 md:grid-cols-2">
             {/* Ride Services */}
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-8 border border-blue-200">
+            <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-8 border border-blue-200">
               <div className="flex items-center mb-6">
-                <div className="flex items-center justify-center w-12 h-12 bg-indigo-500 rounded-md mr-4">
+                <div className="flex items-center justify-center w-12 h-12 bg-purple-500 rounded-md mr-4">
                   <Car className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900">Ride Services</h3>
@@ -202,8 +202,8 @@ const About = () => {
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <div className="text-center">
-              <div className="flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-full mx-auto mb-4">
-                <Shield className="w-8 h-8 text-indigo-600" />
+              <div className="flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mx-auto mb-4">
+                <Shield className="w-8 h-8 text-purple-600" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Safety</h3>
               <p className="text-gray-600 text-sm">
@@ -255,8 +255,8 @@ const About = () => {
           </div>
 
           <div className="max-w-md mx-auto">
-            <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-lg p-8 border border-indigo-200 text-center">
-              <div className="flex items-center justify-center w-16 h-16 bg-indigo-500 rounded-full mx-auto mb-6">
+            <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg p-8 border border-purple-200 text-center">
+              <div className="flex items-center justify-center w-16 h-16 bg-purple-500 rounded-full mx-auto mb-6">
                 <Phone className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-4">Contact Us</h3>
@@ -265,7 +265,7 @@ const About = () => {
               </p>
               <a
                 href="tel:+2208690714"
-                className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+                className="inline-flex items-center px-6 py-3 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors"
               >
                 <Phone className="w-5 h-5 mr-2" />
                 +220 869 0714
@@ -276,20 +276,20 @@ const About = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-indigo-600">
+      <section className="py-16 bg-purple-600">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-extrabold text-white mb-4">
             Join the TownTripHub Community
           </h2>
-          <p className="text-xl text-indigo-100 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-purple-100 mb-8 max-w-2xl mx-auto">
             Whether you're a passenger, driver, or business owner, TownTripHub connects
             you to reliable transportation solutions across The Gambia.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-white text-indigo-600 px-8 py-3 rounded-lg hover:bg-gray-50 transition-colors font-medium">
+            <button className="bg-white text-purple-600 px-8 py-3 rounded-lg hover:bg-gray-50 transition-colors font-medium">
               Book a Ride
             </button>
-            <button className="bg-indigo-500 text-white px-8 py-3 rounded-lg hover:bg-indigo-400 transition-colors font-medium border border-indigo-400">
+            <button className="bg-purple-500 text-white px-8 py-3 rounded-lg hover:bg-purple-400 transition-colors font-medium border border-purple-400">
               Become a Driver
             </button>
           </div>

@@ -4,6 +4,7 @@ const {
   getAdminStats,
   getAllUsers,
   updateUserStatus,
+  updateUserRole,
   getSystemSettings,
   updateSystemSettings,
 } = require('../controllers/adminController');
@@ -41,6 +42,15 @@ router.put(
     body('status').isIn(['verified', 'unverified']).withMessage('Status must be verified or unverified'),
   ],
   updateUserStatus
+);
+
+router.put(
+  '/users/:userId/role',
+  [
+    param('userId').isMongoId().withMessage('Invalid user ID'),
+    body('role').isIn(['user', 'admin']).withMessage('Role must be user or admin'),
+  ],
+  updateUserRole
 );
 
 // System settings

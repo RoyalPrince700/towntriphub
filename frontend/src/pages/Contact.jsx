@@ -27,14 +27,14 @@ const Contact = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100">
       <Navbar />
 
       {/* Hero Section */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center">
           <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
-            Contact <span className="text-indigo-600">Us</span>
+            Contact <span className="text-purple-600">Us</span>
           </h1>
           <p className="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
             Get in touch with TownTripHub. We're here to help with any questions about our services
@@ -55,14 +55,14 @@ const Contact = () => {
 
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
             {/* Phone */}
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200 text-center">
-              <div className="flex items-center justify-center w-12 h-12 bg-indigo-500 rounded-md mx-auto mb-4">
+            <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-6 border border-blue-200 text-center">
+              <div className="flex items-center justify-center w-12 h-12 bg-purple-500 rounded-md mx-auto mb-4">
                 <Phone className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Phone</h3>
               <p className="text-gray-600 mb-2">Call us directly</p>
-              <p className="text-indigo-600 font-medium">+220 869 0714</p>
-              <p className="text-indigo-600 font-medium">+220 869 0715</p>
+              <p className="text-purple-600 font-medium">+220 869 0714</p>
+              <p className="text-purple-600 font-medium">+220 869 0715</p>
             </div>
 
             {/* Email */}
@@ -77,7 +77,7 @@ const Contact = () => {
             </div>
 
             {/* Location */}
-            <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-lg p-6 border border-purple-200 text-center">
+            <div className="bg-gradient-to-br from-purple-50 to-purple-50 rounded-lg p-6 border border-purple-200 text-center">
               <div className="flex items-center justify-center w-12 h-12 bg-purple-500 rounded-md mx-auto mb-4">
                 <MapPin className="w-6 h-6 text-white" />
               </div>
@@ -121,7 +121,7 @@ const Contact = () => {
                       value={formData.name}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                       placeholder="Your full name"
                     />
                   </div>
@@ -136,7 +136,7 @@ const Contact = () => {
                       value={formData.email}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                       placeholder="your@email.com"
                     />
                   </div>
@@ -176,7 +176,7 @@ const Contact = () => {
 
                 <button
                   type="submit"
-                  className="w-full bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors font-medium flex items-center justify-center"
+                  className="w-full bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors font-medium flex items-center justify-center"
                 >
                   <Send className="w-5 h-5 mr-2" />
                   Send Message
@@ -203,7 +203,7 @@ const Contact = () => {
                 <h3 className="text-2xl font-extrabold text-gray-900 mb-6">Other Ways to Connect</h3>
                 <div className="space-y-4">
                   <div className="flex items-start">
-                    <MessageSquare className="w-6 h-6 text-indigo-600 mt-1 mr-3 flex-shrink-0" />
+                    <MessageSquare className="w-6 h-6 text-purple-600 mt-1 mr-3 flex-shrink-0" />
                     <div>
                       <h4 className="font-semibold text-gray-900">Live Chat</h4>
                       <p className="text-gray-600 text-sm">Available on our website during business hours</p>
@@ -244,9 +244,9 @@ const Contact = () => {
 
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {/* Banjul Office */}
-            <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-lg p-6 border border-indigo-200">
+            <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg p-6 border border-purple-200">
               <div className="flex items-center mb-4">
-                <MapPin className="w-6 h-6 text-indigo-600 mr-3" />
+                <MapPin className="w-6 h-6 text-purple-600 mr-3" />
                 <h3 className="text-xl font-semibold text-gray-900">Greater Banjul Area</h3>
               </div>
               <p className="text-gray-600 mb-4">
@@ -276,7 +276,7 @@ const Contact = () => {
             </div>
 
             {/* Brikama Office */}
-            <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-lg p-6 border border-purple-200">
+            <div className="bg-gradient-to-br from-purple-50 to-purple-50 rounded-lg p-6 border border-purple-200">
               <div className="flex items-center mb-4">
                 <MapPin className="w-6 h-6 text-purple-600 mr-3" />
                 <h3 className="text-xl font-semibold text-gray-900">Brikama & Western Region</h3>
@@ -295,20 +295,20 @@ const Contact = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-indigo-600">
+      <section className="py-16 bg-purple-600">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-extrabold text-white mb-4">
             Ready to Get Started?
           </h2>
-          <p className="text-xl text-indigo-100 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-purple-100 mb-8 max-w-2xl mx-auto">
             Join thousands of satisfied customers across The Gambia who trust TownTripHub
             for their transportation and logistics needs.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-white text-indigo-600 px-8 py-3 rounded-lg hover:bg-gray-50 transition-colors font-medium">
+            <button className="bg-white text-purple-600 px-8 py-3 rounded-lg hover:bg-gray-50 transition-colors font-medium">
               Book a Ride Now
             </button>
-            <button className="bg-indigo-500 text-white px-8 py-3 rounded-lg hover:bg-indigo-400 transition-colors font-medium border border-indigo-400">
+            <button className="bg-purple-500 text-white px-8 py-3 rounded-lg hover:bg-purple-400 transition-colors font-medium border border-purple-400">
               Partner With Us
             </button>
           </div>

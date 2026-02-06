@@ -1,112 +1,76 @@
 import React from 'react';
-import { Car, Package, MapPin, Clock, Star } from 'lucide-react';
+import { Car, Package, MapPin, Clock, Star, ArrowRight, Bookmark, Calendar } from 'lucide-react';
 
-const MobileHomeActions = ({ onServiceSelect }) => {
+const MobileHomeActions = ({ onServiceSelect, onQuickActionSelect }) => {
   return (
-    <div className="space-y-4">
-      {/* Quick Service Selection */}
+    <div className="space-y-8">
+      {/* Service Cards */}
       <div className="grid grid-cols-1 gap-4">
-        {/* Ride Booking Card */}
-        <div
+        {/* Ride Card */}
+        <button
           onClick={() => onServiceSelect && onServiceSelect('ride')}
-          className="bg-white rounded-lg shadow-lg p-4 cursor-pointer hover:shadow-xl transition-shadow border-l-4 border-indigo-500"
+          className="relative overflow-hidden bg-white rounded-[2rem] p-6 text-left border border-gray-100 shadow-xl shadow-purple-100/20 group active:scale-[0.98] transition-all"
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="bg-indigo-100 p-2 rounded-lg">
-                <Car className="h-6 w-6 text-indigo-600" />
+          <div className="relative z-10 flex justify-between items-start">
+            <div className="space-y-4">
+              <div className="w-12 h-12 bg-purple-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-purple-200">
+                <Car size={24} />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-gray-900">Book a Ride</h3>
-                <p className="text-xs text-gray-600">Get picked up anywhere in Gambia</p>
+                <h3 className="text-xl font-black text-gray-900 tracking-tight">Book a Ride</h3>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">GMD 50 • 2-5 min</p>
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-xs text-gray-500">From</div>
-              <div className="text-sm font-bold text-indigo-600">GMD 50</div>
+            <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 group-hover:text-purple-600 transition-colors">
+              <ArrowRight size={20} />
             </div>
           </div>
-          <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
-            <span className="flex items-center">
-              <Clock className="h-3 w-3 mr-1" />
-              2-5 min wait
-            </span>
-            <span className="flex items-center">
-              <Star className="h-3 w-3 mr-1 fill-current" />
-              4.8 rating
-            </span>
-          </div>
-        </div>
+          <Car className="absolute bottom-[-10%] right-[-10%] w-32 h-32 text-gray-50/50 -rotate-12 group-hover:rotate-0 transition-transform duration-500" />
+        </button>
 
-        {/* Delivery Service Card */}
-        <div
+        {/* Delivery Card */}
+        <button
           onClick={() => onServiceSelect && onServiceSelect('delivery')}
-          className="bg-white rounded-lg shadow-lg p-4 cursor-pointer hover:shadow-xl transition-shadow border-l-4 border-green-500"
+          className="relative overflow-hidden bg-white rounded-[2rem] p-6 text-left border border-gray-100 shadow-xl shadow-emerald-100/20 group active:scale-[0.98] transition-all"
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="bg-green-100 p-2 rounded-lg">
-                <Package className="h-6 w-6 text-green-600" />
+          <div className="relative z-10 flex justify-between items-start">
+            <div className="space-y-4">
+              <div className="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-200">
+                <Package size={24} />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-gray-900">Send Package</h3>
-                <p className="text-xs text-gray-600">Reliable delivery across Gambia</p>
+                <h3 className="text-xl font-black text-gray-900 tracking-tight">Send Package</h3>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">GMD 75 • Fast Delivery</p>
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-xs text-gray-500">From</div>
-              <div className="text-sm font-bold text-green-600">GMD 75</div>
+            <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 group-hover:text-emerald-600 transition-colors">
+              <ArrowRight size={20} />
             </div>
           </div>
-          <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
-            <span className="flex items-center">
-              <Clock className="h-3 w-3 mr-1" />
-              Same day delivery
-            </span>
-            <span className="flex items-center">
-              <MapPin className="h-3 w-3 mr-1" />
-              Door to door
-            </span>
-          </div>
-        </div>
+          <Package className="absolute bottom-[-10%] right-[-10%] w-32 h-32 text-gray-50/50 -rotate-12 group-hover:rotate-0 transition-transform duration-500" />
+        </button>
       </div>
 
-      {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow-lg p-4">
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">Quick Actions</h3>
-        <div className="grid grid-cols-2 gap-3">
-          <button className="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-            <MapPin className="h-5 w-5 text-indigo-600 mb-1" />
-            <span className="text-xs font-medium text-gray-900">Saved Places</span>
-          </button>
-          <button className="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-            <Clock className="h-5 w-5 text-green-600 mb-1" />
-            <span className="text-xs font-medium text-gray-900">Schedule Ride</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Why Choose Us */}
-      <div className="bg-gradient-to-r from-indigo-500 to-green-500 rounded-lg p-4 text-white">
-        <h3 className="text-sm font-semibold mb-2">Why Choose TownTripHub?</h3>
-        <div className="grid grid-cols-2 gap-3 text-xs">
-          <div className="flex items-center">
-            <div className="w-1.5 h-1.5 bg-white rounded-full mr-2"></div>
-            <span>Verified Drivers</span>
+      {/* Quick Quick Actions */}
+      <div className="grid grid-cols-2 gap-4">
+        <button
+          onClick={() => onQuickActionSelect && onQuickActionSelect('savedPlaces')}
+          className="flex flex-col items-center justify-center p-6 bg-white rounded-[2rem] border border-gray-100 shadow-lg shadow-gray-100/50 active:scale-95 transition-all"
+        >
+          <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600 mb-3">
+            <Bookmark size={20} />
           </div>
-          <div className="flex items-center">
-            <div className="w-1.5 h-1.5 bg-white rounded-full mr-2"></div>
-            <span>Real-time Tracking</span>
+          <span className="text-xs font-black text-gray-900 uppercase tracking-tighter">Saved Places</span>
+        </button>
+        <button
+          onClick={() => onQuickActionSelect && onQuickActionSelect('schedule')}
+          className="flex flex-col items-center justify-center p-6 bg-white rounded-[2rem] border border-gray-100 shadow-lg shadow-gray-100/50 active:scale-95 transition-all"
+        >
+          <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 mb-3">
+            <Calendar size={20} />
           </div>
-          <div className="flex items-center">
-            <div className="w-1.5 h-1.5 bg-white rounded-full mr-2"></div>
-            <span>Cash & Transfer</span>
-          </div>
-          <div className="flex items-center">
-            <div className="w-1.5 h-1.5 bg-white rounded-full mr-2"></div>
-            <span>24/7 Support</span>
-          </div>
-        </div>
+          <span className="text-xs font-black text-gray-900 uppercase tracking-tighter">Schedule</span>
+        </button>
       </div>
     </div>
   );

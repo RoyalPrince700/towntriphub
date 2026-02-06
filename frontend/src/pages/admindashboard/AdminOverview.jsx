@@ -59,7 +59,7 @@ const AdminOverview = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
         <div className="bg-white rounded-lg shadow p-4 lg:p-6">
           <div className="flex items-center">
-            <Car className="h-6 w-6 lg:h-8 lg:w-8 text-indigo-600" />
+            <Car className="h-6 w-6 lg:h-8 lg:w-8 text-purple-600" />
             <div className="ml-3 lg:ml-4">
               <p className="text-xs lg:text-sm font-medium text-gray-600">Total Bookings</p>
               <p className="text-lg lg:text-xl font-bold text-gray-900">{overview.totalBookings || 0}</p>
@@ -99,10 +99,10 @@ const AdminOverview = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 mb-8">
         <div className="bg-white rounded-lg shadow p-4 lg:p-6">
           <div className="flex items-center mb-4">
-            <Users className="h-6 w-6 text-indigo-600 mr-2" />
+            <Users className="h-6 w-6 text-purple-600 mr-2" />
             <h3 className="text-lg font-semibold text-gray-900">Users</h3>
           </div>
-          <p className="text-3xl font-bold text-indigo-600">{overview.totalUsers || 0}</p>
+          <p className="text-3xl font-bold text-purple-600">{overview.totalUsers || 0}</p>
           <p className="text-sm text-gray-600">Registered users</p>
         </div>
         <div className="bg-white rounded-lg shadow p-4 lg:p-6">
@@ -136,7 +136,7 @@ const AdminOverview = () => {
               <div key={booking._id} className="flex items-center p-3 lg:p-4 bg-gray-50 rounded-lg">
                 <div className="flex-shrink-0">
                   {booking.type === 'ride' ? (
-                    <Car className="h-5 w-5 lg:h-6 lg:w-6 text-indigo-600" />
+                    <Car className="h-5 w-5 lg:h-6 lg:w-6 text-purple-600" />
                   ) : (
                     <Package className="h-5 w-5 lg:h-6 lg:w-6 text-green-600" />
                   )}

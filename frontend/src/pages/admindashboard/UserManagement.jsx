@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
   getAllUsers,
-  updateUserStatus
+  updateUserStatus,
+  updateUserRole
 } from '../../services/adminService';
 import { CheckCircle, XCircle, Search, Users as UsersIcon } from 'lucide-react';
 
@@ -64,6 +65,26 @@ const UserManagement = () => {
     }
   };
 
+  const handleRoleUpdate = async (userId, newRole) => {
+    try {
+      setActionLoading(userId);
+      await updateUserRole(userId, newRole);
+
+      // Update local state
+      setUsers(prevUsers =>
+        prevUsers.map(user =>
+          user._id === userId
+            ? { ...user, role: newRole }
+            : user
+        )
+      );
+    } catch (err) {
+      setError(err.message || `Failed to update role to ${newRole}`);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const getStatusBadge = (isVerified) => {
     return (
       <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${
@@ -118,7 +139,7 @@ const UserManagement = () => {
             placeholder="Search users by name or email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
           />
         </div>
 
@@ -134,7 +155,7 @@ const UserManagement = () => {
                   onClick={() => setStatusFilter(status)}
                   className={`px-3 py-1 text-sm font-medium rounded-lg ${
                     statusFilter === status
-                      ? 'bg-indigo-600 text-white'
+                      ? 'bg-purple-600 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
@@ -148,13 +169,13 @@ const UserManagement = () => {
           <div className="flex items-center space-x-2">
             <span className="text-sm font-medium text-gray-700">Role:</span>
             <div className="flex space-x-2">
-              {['all', 'user', 'driver', 'logistics'].map((role) => (
+              {['all', 'user', 'admin'].map((role) => (
                 <button
                   key={role}
                   onClick={() => setRoleFilter(role)}
                   className={`px-3 py-1 text-sm font-medium rounded-lg ${
                     roleFilter === role
-                      ? 'bg-indigo-600 text-white'
+                      ? 'bg-purple-600 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
@@ -183,7 +204,7 @@ const UserManagement = () => {
       <div className="bg-white rounded-lg shadow-lg">
         {loading ? (
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
             <span className="ml-3 text-gray-600">Loading users...</span>
           </div>
         ) : users.length > 0 ? (
@@ -214,7 +235,7 @@ const UserManagement = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
-                          <div className="h-10 w-10 rounded-full bg-indigo-500 flex items-center justify-center">
+                          <div className="h-10 w-10 rounded-full bg-purple-500 flex items-center justify-center">
                             <span className="text-sm font-medium text-white">
                               {user.name.charAt(0).toUpperCase()}
                             </span>
@@ -231,7 +252,19 @@ const UserManagement = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {getRoleBadge(user.role)}
+                      <select
+                        value={user.role}
+                        onChange={(e) => handleRoleUpdate(user._id, e.target.value)}
+                        disabled={actionLoading === user._id}
+                        className={`text-xs font-medium rounded-full px-2 py-1 border-none focus:ring-2 focus:ring-purple-500 cursor-pointer ${
+                          user.role === 'admin' 
+                            ? 'bg-red-100 text-red-800' 
+                            : 'bg-blue-100 text-blue-800'
+                        }`}
+                      >
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                      </select>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {getStatusBadge(user.isEmailVerified)}
@@ -243,7 +276,7 @@ const UserManagement = () => {
                         day: 'numeric',
                       })}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
                       {user.isEmailVerified ? (
                         <button
                           onClick={() => handleStatusUpdate(user._id, 'unverified')}

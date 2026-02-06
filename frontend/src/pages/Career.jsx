@@ -75,7 +75,7 @@ const Career = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100">
       <Navbar />
 
       {/* Hero Section */}
@@ -83,7 +83,7 @@ const Career = () => {
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
             Join Our Team at{' '}
-            <span className="text-indigo-600">TownTripHub</span>
+            <span className="text-purple-600">TownTripHub</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
             Be part of The Gambia's leading transportation and logistics platform.
@@ -92,13 +92,13 @@ const Career = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
               href="#jobs"
-              className="bg-indigo-600 text-white px-8 py-4 rounded-lg hover:bg-indigo-700 transition-colors font-semibold text-lg"
+              className="bg-purple-600 text-white px-8 py-4 rounded-lg hover:bg-purple-700 transition-colors font-semibold text-lg"
             >
               View Open Positions
             </a>
             <a
               href="#contact"
-              className="border-2 border-indigo-600 text-indigo-600 px-8 py-4 rounded-lg hover:bg-indigo-50 transition-colors font-semibold text-lg"
+              className="border-2 border-purple-600 text-purple-600 px-8 py-4 rounded-lg hover:bg-purple-50 transition-colors font-semibold text-lg"
             >
               Contact Us
             </a>
@@ -111,17 +111,17 @@ const Career = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div className="p-6">
-              <div className="text-4xl font-bold text-indigo-600 mb-2">500+</div>
+              <div className="text-4xl font-bold text-purple-600 mb-2">500+</div>
               <div className="text-gray-600 font-medium">Active Drivers</div>
               <div className="text-sm text-gray-500 mt-1">Growing every day</div>
             </div>
             <div className="p-6">
-              <div className="text-4xl font-bold text-indigo-600 mb-2">10K+</div>
+              <div className="text-4xl font-bold text-purple-600 mb-2">10K+</div>
               <div className="text-gray-600 font-medium">Deliveries Monthly</div>
               <div className="text-sm text-gray-500 mt-1">Across The Gambia</div>
             </div>
             <div className="p-6">
-              <div className="text-4xl font-bold text-indigo-600 mb-2">24/7</div>
+              <div className="text-4xl font-bold text-purple-600 mb-2">24/7</div>
               <div className="text-gray-600 font-medium">Support Available</div>
               <div className="text-sm text-gray-500 mt-1">Always here to help</div>
             </div>
@@ -145,8 +145,8 @@ const Career = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {benefits.map((benefit, index) => (
               <div key={index} className="bg-white rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-shadow">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-full mb-4">
-                  <benefit.icon className="h-8 w-8 text-indigo-600" />
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-4">
+                  <benefit.icon className="h-8 w-8 text-purple-600" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">
                   {benefit.title}
@@ -177,12 +177,12 @@ const Career = () => {
               <div key={job.id} className="bg-white rounded-lg shadow-lg overflow-hidden">
                 <div className="p-8">
                   <div className="flex items-center mb-4">
-                    <div className="inline-flex items-center justify-center w-12 h-12 bg-indigo-100 rounded-full mr-4">
-                      <job.icon className="h-6 w-6 text-indigo-600" />
+                    <div className="inline-flex items-center justify-center w-12 h-12 bg-purple-100 rounded-full mr-4">
+                      <job.icon className="h-6 w-6 text-purple-600" />
                     </div>
                     <div>
                       <h3 className="text-xl font-semibold text-gray-900">{job.title}</h3>
-                      <p className="text-indigo-600 font-medium">{job.type}</p>
+                      <p className="text-purple-600 font-medium">{job.type}</p>
                     </div>
                   </div>
 
@@ -244,8 +244,8 @@ const Career = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-full mb-6">
-                <span className="text-2xl font-bold text-indigo-600">1</span>
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-6">
+                <span className="text-2xl font-bold text-purple-600">1</span>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-4">Submit Application</h3>
               <p className="text-gray-600">
@@ -255,8 +255,8 @@ const Career = () => {
             </div>
 
             <div className="text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-full mb-6">
-                <span className="text-2xl font-bold text-indigo-600">2</span>
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-6">
+                <span className="text-2xl font-bold text-purple-600">2</span>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-4">Background Check</h3>
               <p className="text-gray-600">
@@ -266,8 +266,8 @@ const Career = () => {
             </div>
 
             <div className="text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-full mb-6">
-                <span className="text-2xl font-bold text-indigo-600">3</span>
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-6">
+                <span className="text-2xl font-bold text-purple-600">3</span>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-4">Start Driving</h3>
               <p className="text-gray-600">
@@ -292,21 +292,21 @@ const Career = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
             <div className="bg-white rounded-lg shadow-lg p-8">
               <div className="flex items-center justify-center mb-4">
-                <Phone className="h-8 w-8 text-indigo-600 mr-3" />
+                <Phone className="h-8 w-8 text-purple-600 mr-3" />
                 <h3 className="text-xl font-semibold text-gray-900">Call Us</h3>
               </div>
               <p className="text-gray-600 mb-4">Speak directly with our recruitment team</p>
-              <p className="text-2xl font-bold text-indigo-600">+220 869 0714</p>
+              <p className="text-2xl font-bold text-purple-600">+220 869 0714</p>
               <p className="text-sm text-gray-500 mt-2">Mon - Fri, 9AM - 6PM GMT</p>
             </div>
 
             <div className="bg-white rounded-lg shadow-lg p-8">
               <div className="flex items-center justify-center mb-4">
-                <Mail className="h-8 w-8 text-indigo-600 mr-3" />
+                <Mail className="h-8 w-8 text-purple-600 mr-3" />
                 <h3 className="text-xl font-semibold text-gray-900">Email Us</h3>
               </div>
               <p className="text-gray-600 mb-4">Send us your resume and details</p>
-              <p className="text-lg font-semibold text-indigo-600">careers@towntriphub.com</p>
+              <p className="text-lg font-semibold text-purple-600">careers@towntriphub.com</p>
               <p className="text-sm text-gray-500 mt-2">We respond within 24 hours</p>
             </div>
           </div>
@@ -321,7 +321,7 @@ const Career = () => {
                   </label>
                   <input
                     type="text"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                     placeholder="Enter your full name"
                   />
                 </div>
@@ -331,7 +331,7 @@ const Career = () => {
                   </label>
                   <input
                     type="tel"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                     placeholder="Enter your phone number"
                   />
                 </div>

@@ -9,7 +9,7 @@ const Profile = ({ user, profile, loading }) => {
     <div className="bg-white rounded-lg shadow-lg p-4 lg:p-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
         <h2 className="text-base lg:text-lg font-semibold text-gray-900 mb-2 sm:mb-0">Logistics Profile</h2>
-        <button className="flex items-center text-indigo-600 hover:text-indigo-800 transition-colors">
+        <button className="flex items-center text-purple-600 hover:text-purple-800 transition-colors">
           <Settings className="h-4 w-4 mr-2" />
           Edit Profile
         </button>
@@ -117,7 +117,7 @@ const Profile = ({ user, profile, loading }) => {
 
         <div className="border-t pt-6 mt-6">
           <h3 className="text-base font-medium text-gray-900 mb-4 flex items-center">
-            <Mail className="h-5 w-5 mr-2 text-indigo-600" />
+            <Mail className="h-5 w-5 mr-2 text-purple-600" />
             Contact
           </h3>
           <div className="space-y-2 text-sm text-gray-700">

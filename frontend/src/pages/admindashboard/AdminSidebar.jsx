@@ -25,7 +25,7 @@ const AdminSidebar = ({
   isOpen = false,
   onClose = () => {}
 }) => {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -89,7 +89,7 @@ const AdminSidebar = ({
           <div className="flex justify-between items-center p-4 border-b">
             <div className="flex items-center px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
               <Shield className="h-3 w-3 mr-1" />
-              Admin
+              {user?.email ? user.email.split('@')[0] : 'Admin'}
             </div>
             <button
               onClick={onClose}
@@ -116,7 +116,7 @@ const AdminSidebar = ({
                     !isMobile && isCollapsed ? 'px-3 py-3 justify-center' : 'px-3 py-3'
                   } ${
                     activeTab === item.id
-                      ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                      ? 'bg-purple-50 text-purple-700 border border-purple-200'
                       : 'text-gray-700 hover:bg-gray-50'
                   }`}
                   title={!isMobile && isCollapsed ? item.label : undefined}

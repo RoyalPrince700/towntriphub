@@ -16,7 +16,11 @@ import {
   XCircle,
   User,
   Phone,
-  Info
+  Info,
+  ArrowRight,
+  Shield,
+  Calendar,
+  MessageSquare
 } from 'lucide-react';
 import { getUserRatingStats, getUserReviews, getGivenReviews } from '../../services/reviewService';
 import RatingReviewComponent from '../../components/RatingReviewComponent';
@@ -33,7 +37,6 @@ const Overview = ({ stats, recentBookings, driverProfile, logisticsProfile }) =>
   const [selectedBooking, setSelectedBooking] = useState(null);
 
   const handleGoToDashboard = async (target) => {
-    // Refresh user data to get the new role if they were just approved
     await refreshUser();
     if (target === 'logistics') {
       navigate('/logistics/dashboard');
@@ -48,35 +51,30 @@ const Overview = ({ stats, recentBookings, driverProfile, logisticsProfile }) =>
     switch (status) {
       case 'pending_approval':
         return {
-          color: 'text-yellow-600',
-          bgColor: 'bg-yellow-50',
-          borderColor: 'border-yellow-200',
+          color: 'text-amber-600',
+          bgColor: 'bg-amber-50',
+          borderColor: 'border-amber-100',
           icon: Clock,
-          message: `Your ${label.toLowerCase()} application is currently being reviewed by our team. We will notify you once it is approved.`,
-          label: 'Pending Review',
-          title: `${label} Application`
+          message: `Your ${label.toLowerCase()} application is under review.`,
+          label: 'Pending Approval',
         };
       case 'approved':
         return {
-          color: 'text-green-600',
-          bgColor: 'bg-green-50',
-          borderColor: 'border-green-200',
+          color: 'text-emerald-600',
+          bgColor: 'bg-emerald-50',
+          borderColor: 'border-emerald-100',
           icon: CheckCircle,
-          message: `Congratulations! Your ${label.toLowerCase()} application has been approved. You can now access the ${label.toLowerCase()} dashboard.`,
+          message: `Your ${label.toLowerCase()} application is approved!`,
           label: 'Approved',
-          title: `${label} Application`
         };
       case 'rejected':
         return {
-          color: 'text-red-600',
-          bgColor: 'bg-red-50',
-          borderColor: 'border-red-200',
+          color: 'text-rose-600',
+          bgColor: 'bg-rose-50',
+          borderColor: 'border-rose-100',
           icon: XCircle,
-          message: profile.rejectionReason 
-            ? `Unfortunately, your ${label.toLowerCase()} application was not approved. Reason: ${profile.rejectionReason}. You can make adjustments and reapply.`
-            : `Unfortunately, your ${label.toLowerCase()} application was not approved. Please contact support for more information or try reapplying with updated information.`,
+          message: profile.rejectionReason || `Application rejected. Contact support.`,
           label: 'Rejected',
-          title: `${label} Application`
         };
       default:
         return null;
@@ -171,184 +169,141 @@ const Overview = ({ stats, recentBookings, driverProfile, logisticsProfile }) =>
   const getBookingOwnerId = (booking) => booking?.user?._id || booking?.user;
 
   return (
-    <div className="space-y-6">
-      {/* Active Ride/Delivery - Better UX for Assigned Drivers */}
+    <div className="space-y-10 animate-fade-in">
+      {/* Active Bookings Section */}
       {activeBookings.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="text-lg font-bold text-gray-900 px-1 flex items-center">
-            <div className="w-2 h-6 bg-indigo-600 rounded-full mr-3 animate-pulse"></div>
-            Active Ride Details
-          </h2>
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center">
+              <span className="w-2 h-8 bg-purple-600 rounded-full mr-4"></span>
+              Current Trip
+            </h2>
+            <div className="flex items-center space-x-2 bg-purple-50 text-purple-600 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider animate-pulse">
+              <div className="w-1.5 h-1.5 bg-purple-600 rounded-full"></div>
+              <span>Live Tracking</span>
+            </div>
+          </div>
+          
           {activeBookings.map((booking) => (
-            <div key={booking._id} className="bg-white rounded-2xl shadow-xl overflow-hidden border border-indigo-100 transition-all hover:shadow-2xl">
-              <div className="bg-indigo-600 px-6 py-3 flex justify-between items-center">
+            <div key={booking._id} className="bg-white rounded-[2.5rem] shadow-2xl shadow-purple-100/50 overflow-hidden border border-purple-50/50">
+              <div className="bg-purple-600 p-8 flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
                 <div className="flex items-center text-white">
-                  {booking.type === 'ride' ? <Car className="h-5 w-5 mr-2" /> : <Package className="h-5 w-5 mr-2" />}
-                  <span className="font-semibold capitalize">{booking.type} in Progress</span>
+                  <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mr-4">
+                    {booking.type === 'ride' ? <Car size={24} /> : <Package size={24} />}
+                  </div>
+                  <div>
+                    <p className="text-purple-100 text-xs font-bold uppercase tracking-widest">Active {booking.type}</p>
+                    <h3 className="text-xl font-bold capitalize">{booking.status.replace('_', ' ')}</h3>
+                  </div>
                 </div>
-                <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-white text-xs font-bold uppercase tracking-wider">
-                  {booking.status.replace('_', ' ')}
+                <div className="flex items-center space-x-3">
+                   <button className="bg-white/20 backdrop-blur-md hover:bg-white/30 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all">
+                    Track on Map
+                   </button>
+                   <button className="bg-white text-purple-600 px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-purple-900/20 hover:bg-purple-50 transition-all">
+                    Safety Center
+                   </button>
                 </div>
               </div>
               
-              <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {/* Driver & Car Details */}
-                  <div className="space-y-6">
+              <div className="p-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                  {/* Driver Column */}
+                  <div className="space-y-8">
                     {booking.driver ? (
-                      <div className="flex items-start space-x-4">
+                      <div className="flex items-start space-x-6">
                         <div className="relative">
-                          {booking.driver.user?.avatarUrl || booking.driver.documents?.profilePhoto ? (
-                            <img 
-                              src={booking.driver.user?.avatarUrl || booking.driver.documents?.profilePhoto} 
-                              alt="Driver" 
-                              className="h-20 w-20 rounded-2xl object-cover border-2 border-indigo-100 shadow-md"
-                            />
-                          ) : (
-                            <div className="h-20 w-20 rounded-2xl bg-indigo-100 flex items-center justify-center border-2 border-indigo-50 shadow-md">
-                              <User className="h-10 w-10 text-indigo-400" />
-                            </div>
-                          )}
-                          <div className="absolute -bottom-2 -right-2 bg-green-500 border-2 border-white h-5 w-5 rounded-full shadow-sm"></div>
+                          <img 
+                            src={booking.driver.user?.avatarUrl || booking.driver.documents?.profilePhoto || 'https://via.placeholder.com/150'} 
+                            alt="Driver" 
+                            className="h-24 w-24 rounded-3xl object-cover border-4 border-purple-50 shadow-xl"
+                          />
+                          <div className="absolute -bottom-2 -right-2 bg-emerald-500 border-4 border-white h-7 w-7 rounded-full shadow-lg"></div>
                         </div>
-                        <div className="flex-1">
-                          <h3 className="text-xl font-bold text-gray-900">{booking.driver.user?.name || 'Assigned Driver'}</h3>
-                          <div className="flex items-center text-yellow-500 mt-1">
-                            <Star className="h-4 w-4 fill-current" />
-                            <span className="ml-1 text-sm font-bold text-gray-700">
-                              {booking.driver.rating?.average?.toFixed(1) 
-                                || driverRatings[booking.driver.user?._id]?.averageRating
-                                || '5.0'}
-                            </span>
-                            <span className="mx-2 text-gray-300">•</span>
-                            <span className="text-sm text-gray-500">{booking.driver.statistics?.completedTrips || 0} trips</span>
-                          </div>
-                          {booking.driver.user?._id && (
-                            <div className="mt-2 flex items-center space-x-2">
-                              <button
-                                onClick={() => toggleDriverReviews(booking.driver.user._id)}
-                                className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full hover:bg-indigo-100 transition-colors"
-                              >
-                                {expandedDriverReview === booking.driver.user._id ? 'Hide reviews' : 'View driver reviews'}
-                              </button>
-                              {driverRatings[booking.driver.user._id] && (
-                                <span className="text-xs text-gray-600">
-                                  {driverRatings[booking.driver.user._id].averageRating?.toFixed?.(1) || driverRatings[booking.driver.user._id].averageRating || '0.0'} avg • {driverRatings[booking.driver.user._id].totalReviews || 0} reviews
-                                </span>
-                              )}
+                        <div className="flex-1 space-y-3">
+                          <div>
+                            <h4 className="text-2xl font-black text-gray-900">{booking.driver.user?.name || 'Your Driver'}</h4>
+                            <div className="flex items-center mt-1 space-x-3">
+                              <div className="flex items-center text-amber-500 bg-amber-50 px-2 py-0.5 rounded-lg">
+                                <Star size={14} fill="currentColor" className="mr-1" />
+                                <span className="text-xs font-black">4.9</span>
+                              </div>
+                              <span className="text-gray-400 text-xs font-bold uppercase tracking-tighter">5,000+ Trips</span>
                             </div>
-                          )}
-                          <div className="mt-3 flex space-x-2">
-                            <a 
-                              href={`tel:${booking.driver.user?.phoneNumber || ''}`}
-                              className="flex items-center justify-center bg-indigo-50 text-indigo-700 px-4 py-2 rounded-xl text-sm font-bold hover:bg-indigo-100 transition-colors"
-                            >
-                              <Phone className="h-4 w-4 mr-2" />
-                              Call
+                          </div>
+                          
+                          <div className="flex space-x-2">
+                            <a href={`tel:${booking.driver.user?.phoneNumber}`} className="flex-1 flex items-center justify-center space-x-2 bg-gray-900 text-white py-3 rounded-2xl hover:bg-gray-800 transition-all group">
+                              <Phone size={18} />
+                              <span className="font-bold text-sm">Call</span>
                             </a>
+                            <button className="flex-1 flex items-center justify-center space-x-2 bg-purple-50 text-purple-600 py-3 rounded-2xl hover:bg-purple-100 transition-all group">
+                              <MessageSquare size={18} />
+                              <span className="font-bold text-sm">Chat</span>
+                            </button>
                           </div>
                         </div>
                       </div>
                     ) : (
-                      <div className="flex items-center p-4 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-                        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mr-4"></div>
-                        <p className="text-gray-500 font-medium">Assigning your driver...</p>
+                      <div className="flex items-center p-8 bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200 animate-pulse">
+                        <div className="w-12 h-12 bg-gray-200 rounded-2xl mr-4"></div>
+                        <p className="text-gray-400 font-bold tracking-tight">Assigning your driver...</p>
                       </div>
                     )}
 
-                    {booking.driver && booking.driver.vehicle && (
-                      <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
-                        <div className="flex justify-between items-center mb-3">
-                          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Vehicle Details</span>
-                          <span className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded text-[10px] font-black uppercase">
+                    {booking.driver?.vehicle && (
+                      <div className="bg-gray-50/50 rounded-[2rem] p-6 border border-gray-100 flex items-center justify-between">
+                        <div>
+                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Vehicle</p>
+                          <h5 className="text-lg font-bold text-gray-900">
+                            {booking.driver.vehicle.year} {booking.driver.vehicle.make} {booking.driver.vehicle.model}
+                          </h5>
+                          <p className="text-sm text-gray-500 font-medium capitalize">{booking.driver.vehicle.color} • {booking.driver.vehicle.vehicleType}</p>
+                        </div>
+                        <div className="text-right">
+                          <div className="bg-purple-100 text-purple-700 px-4 py-2 rounded-xl text-lg font-black tracking-tighter shadow-sm">
                             {booking.driver.vehicle.plateNumber}
-                          </span>
-                        </div>
-                        <div className="flex items-center">
-                          <div className="flex-1">
-                            <p className="font-bold text-gray-800 text-lg">
-                              {booking.driver.vehicle.year} {booking.driver.vehicle.make} {booking.driver.vehicle.model}
-                            </p>
-                            <p className="text-gray-500 text-sm capitalize">{booking.driver.vehicle.color} • {booking.driver.vehicle.vehicleType}</p>
                           </div>
-                          {booking.driver.documents?.vehiclePhoto && (
-                            <img 
-                              src={booking.driver.documents.vehiclePhoto} 
-                              alt="Car" 
-                              className="h-16 w-24 rounded-lg object-cover shadow-sm ml-4"
-                            />
-                          )}
                         </div>
-                      </div>
-                    )}
-
-                    {expandedDriverReview === booking.driver?.user?._id && (
-                      <div className="mt-4 bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
-                        <div className="flex items-center justify-between mb-3">
-                          <h4 className="text-sm font-semibold text-gray-900">Recent Reviews</h4>
-                          <span className="text-xs text-gray-500">
-                            Showing latest {driverRecentReviews[booking.driver.user._id]?.length || 0}
-                          </span>
-                        </div>
-                        {driverRecentReviews[booking.driver.user._id]?.length > 0 ? (
-                          <div className="space-y-3">
-                            {driverRecentReviews[booking.driver.user._id].map((review) => (
-                              <div key={review._id} className="border border-gray-100 rounded-lg p-3">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center text-yellow-500">
-                                    <Star className="h-4 w-4 fill-current" />
-                                    <span className="ml-1 text-sm font-bold text-gray-800">{review.rating}</span>
-                                  </div>
-                                  <span className="text-xs text-gray-400">
-                                    {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : ''}
-                                  </span>
-                                </div>
-                                {review.comment && (
-                                  <p className="text-sm text-gray-700 mt-2">{review.comment}</p>
-                                )}
-                                <p className="text-xs text-gray-500 mt-1">
-                                  by {review.reviewer?.name || 'Rider'}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-gray-500">No reviews yet for this driver.</p>
-                        )}
                       </div>
                     )}
                   </div>
 
-                  {/* Trip details */}
+                  {/* Route Column */}
                   <div className="flex flex-col justify-between">
-                    <div className="space-y-4">
-                      <div className="relative pl-8">
-                        <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-gray-200 ml-2"></div>
-                        <div className="absolute left-0 top-1 h-4 w-4 rounded-full border-2 border-green-500 bg-white z-10"></div>
-                        <div className="absolute left-0 bottom-1 h-4 w-4 rounded-full border-2 border-indigo-600 bg-white z-10"></div>
+                    <div className="space-y-8">
+                      <div className="relative pl-10">
+                        <div className="absolute left-[1.125rem] top-3 bottom-3 w-0.5 bg-gradient-to-b from-emerald-500 via-purple-200 to-purple-600"></div>
+                        <div className="absolute left-0 top-1 w-9 h-9 bg-emerald-50 rounded-full flex items-center justify-center z-10 border-4 border-white shadow-sm">
+                          <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full"></div>
+                        </div>
+                        <div className="absolute left-0 bottom-1 w-9 h-9 bg-purple-50 rounded-full flex items-center justify-center z-10 border-4 border-white shadow-sm">
+                          <div className="w-2.5 h-2.5 bg-purple-600 rounded-full"></div>
+                        </div>
                         
-                        <div className="mb-6">
-                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Pickup</p>
-                          <p className="text-sm font-semibold text-gray-700 truncate">{booking.pickupLocation.address}</p>
+                        <div className="mb-10">
+                          <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Pickup Point</p>
+                          <p className="text-base font-bold text-gray-800 leading-snug">{booking.pickupLocation.address}</p>
                         </div>
                         <div>
-                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Destination</p>
-                          <p className="text-sm font-semibold text-gray-700 truncate">{booking.destinationLocation.address}</p>
+                          <p className="text-[10px] font-black text-purple-600 uppercase tracking-widest mb-1">Destination</p>
+                          <p className="text-base font-bold text-gray-800 leading-snug">{booking.destinationLocation.address}</p>
                         </div>
                       </div>
-                      
-                      <div className="pt-4 border-t border-gray-100 flex justify-between items-center">
-                        <div>
-                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Fare</p>
-                          <p className="text-xl font-black text-green-600">GMD {booking.price?.amount || '---'}</p>
-                        </div>
-                        <button 
-                          onClick={() => navigate(`/bookings/${booking._id}`)}
-                          className="text-indigo-600 text-sm font-bold flex items-center hover:underline"
-                        >
-                          Full Details <Info className="h-4 w-4 ml-1" />
-                        </button>
+                    </div>
+
+                    <div className="mt-10 pt-8 border-t border-gray-100 flex items-center justify-between">
+                      <div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Estimated Fare</p>
+                        <p className="text-3xl font-black text-emerald-600">GMD {booking.price?.amount || '---'}</p>
                       </div>
+                      <button 
+                        onClick={() => navigate(`/bookings/${booking._id}`)}
+                        className="flex items-center space-x-2 text-purple-600 font-black text-sm uppercase tracking-tighter hover:translate-x-1 transition-transform"
+                      >
+                        <span>Details</span>
+                        <ArrowRight size={18} />
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -358,307 +313,186 @@ const Overview = ({ stats, recentBookings, driverProfile, logisticsProfile }) =>
         </div>
       )}
 
-      {/* Stats Cards */}
+      {/* Stats Grid */}
       {stats && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-          <div className="bg-white rounded-lg shadow p-4 lg:p-6">
-            <div className="flex items-center">
-              <MapPin className="h-6 w-6 lg:h-8 lg:w-8 text-indigo-600" />
-              <div className="ml-3 lg:ml-4">
-                <p className="text-xs lg:text-sm font-medium text-gray-600">Total Bookings</p>
-                <p className="text-lg lg:text-xl font-bold text-gray-900">{stats.totalBookings}</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[
+            { label: 'Total Trips', value: stats.totalBookings, icon: MapPin, color: 'indigo' },
+            { label: 'Completion', value: `${stats.completionRate}%`, icon: TrendingUp, color: 'emerald' },
+            { label: 'Total Spent', value: `GMD ${stats.totalSpent}`, icon: DollarSign, color: 'blue' },
+            { label: 'Avg Rating', value: (typeof stats.avgRating === 'number' ? stats.avgRating.toFixed(1) : (stats.avgRating?.average?.toFixed(1) || '0.0')), icon: Star, color: 'amber' }
+          ].map((stat, i) => (
+            <div key={i} className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-xl shadow-gray-100/20 group hover:-translate-y-1 transition-all">
+              <div className={`w-12 h-12 bg-${stat.color}-50 rounded-2xl flex items-center justify-center text-${stat.color}-600 mb-4 group-hover:scale-110 transition-transform`}>
+                <stat.icon size={24} />
               </div>
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">{stat.label}</p>
+              <p className="text-2xl font-black text-gray-900">{stat.value}</p>
             </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-4 lg:p-6">
-            <div className="flex items-center">
-              <TrendingUp className="h-6 w-6 lg:h-8 lg:w-8 text-green-600" />
-              <div className="ml-3 lg:ml-4">
-                <p className="text-xs lg:text-sm font-medium text-gray-600">Completion Rate</p>
-                <p className="text-lg lg:text-xl font-bold text-gray-900">{stats.completionRate}%</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-4 lg:p-6">
-            <div className="flex items-center">
-              <DollarSign className="h-6 w-6 lg:h-8 lg:w-8 text-blue-600" />
-              <div className="ml-3 lg:ml-4">
-                <p className="text-xs lg:text-sm font-medium text-gray-600">Total Spent</p>
-                <p className="text-lg lg:text-xl font-bold text-gray-900">GMD {stats.totalSpent}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-4 lg:p-6">
-            <div className="flex items-center">
-              <Star className="h-6 w-6 lg:h-8 lg:w-8 text-yellow-600" />
-              <div className="ml-3 lg:ml-4">
-                <p className="text-xs lg:text-sm font-medium text-gray-600">Avg Rating</p>
-                <p className="text-lg lg:text-xl font-bold text-gray-900">{typeof stats.avgRating === 'number' ? stats.avgRating.toFixed(1) : (stats.avgRating?.average?.toFixed(1) || '0.0')}</p>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
       )}
 
-      {/* Registration Options */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <div className="flex items-center mb-4">
-          <UserPlus className="h-6 w-6 text-indigo-600 mr-2" />
-          <h2 className="text-lg font-semibold text-gray-900">Become a Service Provider</h2>
+      {/* Modern CTAs */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Driver CTA */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-purple-600 to-purple-800 rounded-[2.5rem] p-10 text-white group shadow-2xl shadow-purple-100">
+          <div className="relative z-10 space-y-6">
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/20 text-white text-[10px] font-bold uppercase tracking-widest border border-white/10">
+              <Car size={12} />
+              <span>Earn Extra</span>
+            </div>
+            <h3 className="text-3xl font-black leading-tight">Become a <br />TownTrip Driver</h3>
+            <p className="text-purple-100 text-sm max-w-xs leading-relaxed">
+              Join our elite network of drivers. Set your own hours and get the best rates in The Gambia.
+            </p>
+            
+            <div className="pt-4">
+              {driverProfile ? (
+                <div className={`inline-flex flex-col space-y-2 p-4 rounded-2xl border ${driverStatusInfo?.bgColor} ${driverStatusInfo?.borderColor} text-gray-900`}>
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle size={16} className={driverStatusInfo?.color} />
+                    <span className="font-bold text-sm">{driverStatusInfo?.label}</span>
+                  </div>
+                  {driverProfile.status === 'approved' && (
+                    <button onClick={() => handleGoToDashboard('driver')} className="text-purple-600 text-xs font-black uppercase tracking-tighter hover:underline">Go to Dashboard</button>
+                  )}
+                </div>
+              ) : (
+                <button 
+                  onClick={() => navigate('/driver/register')}
+                  className="bg-white text-purple-600 px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-tighter shadow-xl hover:bg-purple-50 transition-all flex items-center space-x-2"
+                >
+                  <span>Register Now</span>
+                  <ArrowRight size={18} />
+                </button>
+              )}
+            </div>
+          </div>
+          <Car className="absolute bottom-[-10%] right-[-10%] w-64 h-64 text-white/10 rotate-[-20deg] group-hover:rotate-0 transition-transform duration-700" />
         </div>
-        <p className="text-gray-600 mb-6">
-          Join our network and start earning! Register as a driver or delivery personnel to provide services.
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 hover:shadow-md transition-all">
-            <div className="flex items-center mb-3">
-              <Car className="h-8 w-8 text-blue-600 mr-3" />
-              <div>
-                <h3 className="font-semibold text-gray-900">Register as Driver</h3>
-                <p className="text-sm text-gray-600">Provide ride services</p>
-              </div>
-            </div>
-            <p className="text-sm text-gray-500 mb-4">
-              Share rides and earn money by transporting passengers around The Gambia.
-            </p>
-            {driverProfile ? (
-              <div className={`w-full px-4 py-2 rounded-lg text-sm font-medium text-center ${
-                driverProfile.status === 'pending_approval' ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' :
-                driverProfile.status === 'approved' ? 'bg-green-100 text-green-800 border border-green-200' :
-                'bg-red-100 text-red-800 border border-red-200'
-              }`}>
-                Application {driverProfile.status.replace('_', ' ')}
-                {driverProfile.status === 'approved' ? (
-                  <button
-                    onClick={() => handleGoToDashboard('driver')}
-                    className="block w-full mt-2 text-indigo-600 hover:underline"
-                  >
-                    Go to Dashboard
-                  </button>
-                ) : driverProfile.status === 'rejected' ? (
-                  <button
-                    onClick={() => navigate('/driver/register')}
-                    className="block w-full mt-2 text-indigo-600 hover:underline font-bold"
-                  >
-                    Reapply Now
-                  </button>
-                ) : null}
-              </div>
-            ) : (
-              <button
-                onClick={() => navigate('/driver/register')}
-                className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
-              >
-                <Car className="h-4 w-4 mr-2" />
-                Register as Driver
-              </button>
-            )}
-          </div>
 
-          <div className="border border-gray-200 rounded-lg p-4 hover:border-green-300 hover:shadow-md transition-all">
-            <div className="flex items-center mb-3">
-              <Truck className="h-8 w-8 text-green-600 mr-3" />
-              <div>
-                <h3 className="font-semibold text-gray-900">Register as Delivery</h3>
-                <p className="text-sm text-gray-600">Provide delivery services</p>
-              </div>
+        {/* Logistics CTA */}
+        <div className="relative overflow-hidden bg-white rounded-[2.5rem] p-10 border border-gray-100 shadow-2xl shadow-gray-100 group">
+          <div className="relative z-10 space-y-6">
+             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase tracking-widest border border-emerald-100">
+              <Truck size={12} />
+              <span>Logistics</span>
             </div>
-            <p className="text-sm text-gray-500 mb-4">
-              Deliver packages and earn money by providing logistics services.
+            <h3 className="text-3xl font-black text-gray-900 leading-tight">Partner as <br />Delivery Hero</h3>
+            <p className="text-gray-500 text-sm max-w-xs leading-relaxed">
+              Fast-track your income with our delivery network. Send packages and earn per mile.
             </p>
-            {logisticsProfile ? (
-              <div className={`w-full px-4 py-2 rounded-lg text-sm font-medium text-center ${
-                logisticsProfile.status === 'pending_approval' ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' :
-                logisticsProfile.status === 'approved' ? 'bg-green-100 text-green-800 border border-green-200' :
-                'bg-red-100 text-red-800 border border-red-200'
-              }`}>
-                Application {logisticsProfile.status.replace('_', ' ')}
-                {logisticsProfile.status === 'approved' ? (
-                  <button
-                    onClick={() => handleGoToDashboard('logistics')}
-                    className="block w-full mt-2 text-indigo-600 hover:underline"
-                  >
-                    Go to Dashboard
-                  </button>
-                ) : logisticsProfile.status === 'rejected' ? (
-                  <button
-                    onClick={() => navigate('/logistics/register')}
-                    className="block w-full mt-2 text-indigo-600 hover:underline font-bold"
-                  >
-                    Reapply Now
-                  </button>
-                ) : null}
-              </div>
-            ) : (
-              <button
-                onClick={() => navigate('/logistics/register')}
-                className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center"
-              >
-                <Truck className="h-4 w-4 mr-2" />
-                Register as Delivery
-              </button>
-            )}
+            
+            <div className="pt-4">
+              {logisticsProfile ? (
+                 <div className={`inline-flex flex-col space-y-2 p-4 rounded-2xl border ${logisticsStatusInfo?.bgColor} ${logisticsStatusInfo?.borderColor} text-gray-900`}>
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle size={16} className={logisticsStatusInfo?.color} />
+                    <span className="font-bold text-sm">{logisticsStatusInfo?.label}</span>
+                  </div>
+                  {logisticsProfile.status === 'approved' && (
+                    <button onClick={() => handleGoToDashboard('logistics')} className="text-emerald-600 text-xs font-black uppercase tracking-tighter hover:underline">Go to Dashboard</button>
+                  )}
+                </div>
+              ) : (
+                <button 
+                  onClick={() => navigate('/logistics/register')}
+                  className="bg-gray-900 text-white px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-tighter shadow-xl hover:bg-gray-800 transition-all flex items-center space-x-2"
+                >
+                  <span>Get Started</span>
+                  <ArrowRight size={18} />
+                </button>
+              )}
+            </div>
           </div>
+          <Package className="absolute bottom-[-10%] right-[-10%] w-64 h-64 text-gray-50 rotate-[-20deg] group-hover:rotate-0 transition-transform duration-700" />
         </div>
       </div>
 
-      {/* Recent Activity / History */}
-      <div className="bg-white rounded-lg shadow-lg p-4 lg:p-6">
-        <h2 className="text-base lg:text-lg font-semibold text-gray-900 mb-4">Activity History</h2>
-        
-        <div className="space-y-3 lg:space-y-4">
-          {/* Driver Application Status */}
-          {driverStatusInfo && (
-            <div className={`p-4 rounded-lg border ${driverStatusInfo.bgColor} ${driverStatusInfo.borderColor} mb-4`}>
-              <div className="flex items-start">
-                <div className="flex-shrink-0">
-                  <driverStatusInfo.icon className={`h-5 w-5 ${driverStatusInfo.color}`} />
-                </div>
-                <div className="ml-3">
-                  <h3 className={`text-sm font-bold ${driverStatusInfo.color}`}>
-                    {driverStatusInfo.title}: {driverStatusInfo.label}
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-700">
-                    {driverStatusInfo.message}
-                  </p>
-                  {driverProfile.status === 'approved' && (
-                    <button
-                      onClick={() => handleGoToDashboard('driver')}
-                      className="mt-3 inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
-                    >
-                      Go to Driver Dashboard
-                    </button>
-                  )}
-                  {driverProfile.status === 'rejected' && (
-                    <button
-                      onClick={() => navigate('/driver/register')}
-                      className="mt-3 inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
-                    >
-                      Update & Reapply
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
+      {/* Recent History Table-like view */}
+      <div className="bg-white rounded-[3rem] p-10 border border-gray-100 shadow-2xl shadow-gray-100/50">
+        <div className="flex items-center justify-between mb-10">
+          <h2 className="text-2xl font-black text-gray-900 tracking-tighter flex items-center">
+             <Calendar size={28} className="mr-4 text-purple-600" />
+             Recent Activity
+          </h2>
+          <button onClick={() => navigate('/history')} className="text-xs font-black text-gray-400 uppercase tracking-widest hover:text-purple-600 transition-colors">
+            View All Trips
+          </button>
+        </div>
 
-          {/* Logistics Application Status */}
-          {logisticsStatusInfo && (
-            <div className={`p-4 rounded-lg border ${logisticsStatusInfo.bgColor} ${logisticsStatusInfo.borderColor} mb-4`}>
-              <div className="flex items-start">
-                <div className="flex-shrink-0">
-                  <logisticsStatusInfo.icon className={`h-5 w-5 ${logisticsStatusInfo.color}`} />
-                </div>
-                <div className="ml-3">
-                  <h3 className={`text-sm font-bold ${logisticsStatusInfo.color}`}>
-                    {logisticsStatusInfo.title}: {logisticsStatusInfo.label}
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-700">
-                    {logisticsStatusInfo.message}
-                  </p>
-                  {logisticsProfile.status === 'approved' && (
-                    <button
-                      onClick={() => handleGoToDashboard('logistics')}
-                      className="mt-3 inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
-                    >
-                      Go to Logistics Dashboard
-                    </button>
-                  )}
-                  {logisticsProfile.status === 'rejected' && (
-                    <button
-                      onClick={() => navigate('/logistics/register')}
-                      className="mt-3 inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
-                    >
-                      Update & Reapply
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
+        <div className="space-y-4">
           {recentBookings && recentBookings.length > 0 ? (
             recentBookings
               .filter(b => !['driver_assigned', 'driver_en_route', 'picked_up', 'in_transit'].includes(b.status))
-              .map((booking) => {
-                const bookingOwnerId = getBookingOwnerId(booking);
-                const isOwnedByCurrentUser =
-                  !bookingOwnerId || !userId || bookingOwnerId?.toString?.() === userId?.toString?.();
-
-                return (
-                  <div key={booking._id} className="flex items-center p-3 lg:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer" onClick={() => navigate(`/bookings/${booking._id}`)}>
-                    <div className="flex-shrink-0">
-                      {booking.type === 'ride' ? (
-                        <Car className="h-5 w-5 lg:h-6 lg:w-6 text-indigo-600" />
-                      ) : (
-                        <Package className="h-5 w-5 lg:h-6 lg:w-6 text-green-600" />
-                      )}
+              .map((booking) => (
+                <div key={booking._id} className="group flex flex-col md:flex-row md:items-center justify-between p-6 rounded-[2rem] bg-gray-50/50 hover:bg-white border border-transparent hover:border-purple-100 hover:shadow-xl hover:shadow-purple-100/20 transition-all cursor-pointer" onClick={() => navigate(`/bookings/${booking._id}`)}>
+                  <div className="flex items-center space-x-5">
+                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm ${
+                      booking.type === 'ride' ? 'bg-purple-100 text-purple-600' : 'bg-emerald-100 text-emerald-600'
+                    }`}>
+                      {booking.type === 'ride' ? <Car size={24} /> : <Package size={24} />}
                     </div>
-                    <div className="ml-3 lg:ml-4 flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">
-                        {booking.type.charAt(0).toUpperCase() + booking.type.slice(1)} to {booking.destinationLocation.address}
+                    <div>
+                      <h4 className="font-bold text-gray-900 leading-none mb-1 capitalize">
+                        {booking.type} to {booking.destinationLocation.address.split(',')[0]}
+                      </h4>
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-tighter">
+                        {new Date(booking.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                       </p>
-                      <p className="text-xs lg:text-sm text-gray-600">
-                        {new Date(booking.createdAt).toLocaleDateString()} • <span className={`capitalize ${
-                          booking.status === 'completed' ? 'text-green-600 font-medium' : 
-                          booking.status === 'cancelled' ? 'text-red-600 font-medium' : 
-                          'text-gray-600'
-                        }`}>{booking.status.replace('_', ' ')}</span> • GMD {booking.price?.amount || 0}
-                      </p>
-                      {booking.status === 'completed' && isOwnedByCurrentUser && (
-                        <div className="mt-2">
-                          {reviewedBookingIds.has(booking._id) ? (
-                            <span className="text-[11px] font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full">
-                              Review submitted
-                            </span>
-                          ) : (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openReview(booking);
-                              }}
-                              className="text-[11px] font-semibold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full hover:bg-indigo-100 transition-colors"
-                            >
-                              Drop a review
-                            </button>
-                          )}
-                        </div>
-                      )}
-                      {booking.status === 'completed' && !isOwnedByCurrentUser && (
-                        <p className="mt-2 text-[11px] text-red-500">
-                          This booking belongs to another user; review not available.
-                        </p>
-                      )}
-                    </div>
-                    <div className="ml-2">
-                      <Info className="h-4 w-4 text-gray-400" />
                     </div>
                   </div>
-                );
-              })
+                  
+                  <div className="mt-4 md:mt-0 flex items-center justify-between md:space-x-12">
+                    <div className="text-left md:text-right">
+                      <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${
+                        booking.status === 'completed' ? 'text-emerald-500' : 
+                        booking.status === 'cancelled' ? 'text-rose-500' : 'text-gray-400'
+                      }`}>
+                        {booking.status.replace('_', ' ')}
+                      </p>
+                      <p className="text-lg font-black text-gray-900 tracking-tighter">GMD {booking.price?.amount || 0}</p>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                       {booking.status === 'completed' && !reviewedBookingIds.has(booking._id) && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openReview(booking);
+                          }}
+                          className="px-4 py-2 bg-purple-600 text-white rounded-xl text-xs font-black uppercase tracking-tighter shadow-lg shadow-purple-100 hover:bg-purple-700 transition-all"
+                        >
+                          Review
+                        </button>
+                      )}
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white border border-gray-100 group-hover:border-purple-100 transition-colors">
+                        <ArrowRight size={18} className="text-gray-300 group-hover:text-purple-600 transition-colors" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
           ) : (
-            <div className="text-center py-6">
-              <Clock className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500 text-sm">No recent activity found</p>
+            <div className="text-center py-20 bg-gray-50/50 rounded-[2.5rem] border-2 border-dashed border-gray-100">
+              <Clock size={48} className="text-gray-200 mx-auto mb-4" />
+              <p className="text-gray-400 font-bold tracking-tight">No recent activity to show.</p>
             </div>
           )}
         </div>
       </div>
 
+      {/* Review Modal */}
       {showReviewModal && selectedBooking && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 px-4 py-6">
-          <div className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            <div className="absolute -top-10 right-0">
-              <button
-                onClick={closeReview}
-                className="text-white bg-gray-800 bg-opacity-70 hover:bg-opacity-90 rounded-full px-3 py-1 text-sm"
-              >
-                Close
-              </button>
-            </div>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 backdrop-blur-md px-4 py-6">
+          <div className="relative w-full max-w-2xl bg-white rounded-[3rem] shadow-2xl overflow-hidden p-10 animate-scale-in">
+            <button
+              onClick={closeReview}
+              className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-900 transition-colors"
+            >
+              <XCircle size={24} />
+            </button>
             <RatingReviewComponent
               booking={selectedBooking}
               onSubmit={handleReviewSubmitted}
