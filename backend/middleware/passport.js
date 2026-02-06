@@ -4,6 +4,7 @@ const GoogleTokenStrategy = require('passport-google-id-token');
 const User = require('../models/User');
 const { signToken } = require('../utils/jwt');
 const { Strategy: GoogleOAuthStrategy } = require('passport-google-oauth20');
+const EmailService = require('../mailtrap/email');
 
 // Local email/password strategy
 passport.use(
@@ -35,11 +36,23 @@ passport.use(
         if (!email) return done(null, false, { message: 'Email not present in token' });
 
         let user = await User.findOne({ email });
+        let isNewUser = false;
         if (!user) {
           user = await User.create({ name, email, googleId, isEmailVerified: true, avatarUrl: picture });
+          isNewUser = true;
         } else if (!user.googleId) {
           user.googleId = googleId;
           await user.save();
+        }
+
+        // Send welcome email for new Google users
+        if (isNewUser) {
+          try {
+            await EmailService.sendWelcomeEmail(email, name, 'google-verification-token');
+            console.log('Welcome email sent to new Google user:', email);
+          } catch (emailError) {
+            console.warn('Welcome email failed for Google user, but authentication successful:', emailError.message);
+          }
         }
         return done(null, user);
       } catch (err) {
@@ -76,12 +89,24 @@ passport.use(
         if (!email) return done(null, false, { message: 'Email not available from Google profile' });
 
         let user = await User.findOne({ email });
+        let isNewUser = false;
         if (!user) {
           user = await User.create({ name, email, googleId: profile.id, isEmailVerified: true, avatarUrl: picture });
+          isNewUser = true;
         } else if (!user.googleId) {
           user.googleId = profile.id;
           if (!user.avatarUrl && picture) user.avatarUrl = picture;
           await user.save();
+        }
+
+        // Send welcome email for new Google users
+        if (isNewUser) {
+          try {
+            await EmailService.sendWelcomeEmail(email, name, 'google-verification-token');
+            console.log('Welcome email sent to new Google user:', email);
+          } catch (emailError) {
+            console.warn('Welcome email failed for Google user, but authentication successful:', emailError.message);
+          }
         }
 
         const token = signToken({ id: user._id, name: user.name, email: user.email, role: user.role, isEmailVerified: user.isEmailVerified, avatarUrl: user.avatarUrl });

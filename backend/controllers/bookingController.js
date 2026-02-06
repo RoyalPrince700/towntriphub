@@ -63,8 +63,8 @@ const createRideBooking = asyncHandler(async (req, res) => {
   try {
     const bookingData = {
       bookingId: populatedBooking._id,
-      pickupLocation: populatedBooking.pickupLocation,
-      destination: populatedBooking.destinationLocation,
+      pickupLocation: populatedBooking.pickupLocation.address,
+      destination: populatedBooking.destinationLocation.address,
       scheduledTime: new Date(populatedBooking.scheduledTime).toLocaleString(),
       estimatedFare: populatedBooking.estimatedFare || 'Pending',
       status: populatedBooking.status,
@@ -139,8 +139,8 @@ const createDeliveryBooking = asyncHandler(async (req, res) => {
   try {
     const bookingData = {
       bookingId: populatedBooking._id,
-      pickupLocation: populatedBooking.pickupLocation,
-      destination: populatedBooking.destinationLocation,
+      pickupLocation: populatedBooking.pickupLocation.address,
+      destination: populatedBooking.destinationLocation.address,
       scheduledTime: new Date(populatedBooking.createdAt).toLocaleString(),
       estimatedFare: populatedBooking.estimatedFare || 'Pending',
       status: populatedBooking.status,
