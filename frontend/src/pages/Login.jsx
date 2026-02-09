@@ -3,36 +3,36 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 
 export default function Login() {
-  const { login } = useAuth();
-  const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  // const { login } = useAuth();
+  // const navigate = useNavigate();
+  // const [email, setEmail] = useState('');
+  // const [password, setPassword] = useState('');
+  // const [showPassword, setShowPassword] = useState(false);
+  // const [error, setError] = useState('');
+  // const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-    try {
-      await login(email, password);
-      navigate('/dashboard');
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setError('');
+  //   setLoading(true);
+  //   try {
+  //     await login(email, password);
+  //     navigate('/dashboard');
+  //   } catch (err) {
+  //     setError(err.message);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6">
       <Link to="/" className="mb-4 text-2xl font-bold text-purple-600 hover:text-purple-700 transition-colors">TownTripHub</Link>
       <div className="w-full max-w-md bg-white shadow rounded-lg p-6">
         <h1 className="text-2xl font-semibold text-gray-900 mb-4">Sign in to your account</h1>
-        {error && <div className="mb-3 text-red-600 text-sm">{error}</div>}
+        {/* {error && <div className="mb-3 text-red-600 text-sm">{error}</div>} */}
         
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {/* <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">Email</label>
             <input
@@ -78,10 +78,10 @@ export default function Login() {
           >
             {loading ? 'Signing in...' : 'Sign in'}
           </button>
-        </form>
+        </form> */}
 
         {/* Divider */}
-        <div className="mt-6">
+        {/* <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300" />
@@ -90,7 +90,7 @@ export default function Login() {
               <span className="px-2 bg-white text-gray-500">Or continue with</span>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Google Sign In */}
         <div className="mt-6">
@@ -115,9 +115,9 @@ export default function Login() {
               Sign up here
             </Link>
           </p>
-          <Link className="text-purple-600 hover:underline text-sm mt-2 inline-block" to="/forgot-password">
+          {/* <Link className="text-purple-600 hover:underline text-sm mt-2 inline-block" to="/forgot-password">
             Forgot your password?
-          </Link>
+          </Link> */}
         </div>
       </div>
     </div>

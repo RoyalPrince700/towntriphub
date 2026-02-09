@@ -3,52 +3,52 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 
 export default function Register() {
-  const { register } = useAuth();
-  const navigate = useNavigate();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  // const { register } = useAuth();
+  // const navigate = useNavigate();
+  // const [name, setName] = useState('');
+  // const [email, setEmail] = useState('');
+  // const [password, setPassword] = useState('');
+  // const [confirmPassword, setConfirmPassword] = useState('');
+  // const [showPassword, setShowPassword] = useState(false);
+  // const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  // const [message, setMessage] = useState('');
+  // const [error, setError] = useState('');
+  // const [loading, setLoading] = useState(false);
 
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setMessage('');
-    setLoading(true);
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setError('');
+  //   setMessage('');
+  //   setLoading(true);
 
-    // Validate passwords match
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      setLoading(false);
-      return;
-    }
+  //   // Validate passwords match
+  //   if (password !== confirmPassword) {
+  //     setError('Passwords do not match');
+  //     setLoading(false);
+  //     return;
+  //   }
 
-    try {
-      const res = await register(name, email, password);
-      setMessage(res?.message || 'Registered. Please verify your email.');
-      setTimeout(() => navigate('/verify-email-instructions'), 1200);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  //   try {
+  //     const res = await register(name, email, password);
+  //     setMessage(res?.message || 'Registered. Please verify your email.');
+  //     setTimeout(() => navigate('/verify-email-instructions'), 1200);
+  //   } catch (err) {
+  //     setError(err.message);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6">
       <Link to="/" className="mb-4 text-2xl font-bold text-purple-600 hover:text-purple-700 transition-colors">TownTripHub</Link>
       <div className="w-full max-w-md bg-white shadow rounded-lg p-6">
         <h1 className="text-2xl font-semibold text-gray-900 mb-4">Create your account</h1>
-        {message && <div className="mb-3 text-green-600 text-sm">{message}</div>}
-        {error && <div className="mb-3 text-red-600 text-sm">{error}</div>}
+        {/* {message && <div className="mb-3 text-green-600 text-sm">{message}</div>} */}
+        {/* {error && <div className="mb-3 text-red-600 text-sm">{error}</div>} */}
         
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {/* <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">Name</label>
             <input
@@ -136,10 +136,10 @@ export default function Register() {
           >
             {loading ? 'Creating...' : 'Create account'}
           </button>
-        </form>
+        </form> */}
 
         {/* Divider */}
-        <div className="mt-6">
+        {/* <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300" />
@@ -148,7 +148,7 @@ export default function Register() {
               <span className="px-2 bg-white text-gray-500">Or continue with</span>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Google Sign In */}
         <div className="mt-6">
