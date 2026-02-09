@@ -9,6 +9,7 @@ const {
   logout,
   verifyEmail,
   getProfile,
+  updateProfile,
   requestPasswordReset,
   resetPassword,
 } = require('../controllers/authController');
@@ -34,6 +35,10 @@ router.post(
 router.post('/logout', logout);
 
 router.get('/profile', protect, getProfile);
+
+router.put('/profile', protect, [
+  body('phone').optional().isString().isLength({ min: 7, max: 15 }).withMessage('Phone number must be between 7 and 15 characters'),
+], updateProfile);
 
 router.get('/verify-email', [query('token').isString()], verifyEmail);
 

@@ -41,6 +41,25 @@ export default function UserDashboardMobile() {
     }
   }, [activeTab]);
 
+  // Close hamburger menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showHamburgerMenu && !event.target.closest('.hamburger-menu-container')) {
+        setShowHamburgerMenu(false);
+      }
+    };
+
+    if (showHamburgerMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [showHamburgerMenu]);
+
   const fetchUserStats = async () => {
     try {
       const response = await getBookingStats();
@@ -145,16 +164,17 @@ export default function UserDashboardMobile() {
             </p>
           </div>
         </div>
-        <button
-          onClick={() => setShowHamburgerMenu(!showHamburgerMenu)}
-          className="p-2.5 bg-gray-50 text-gray-500 rounded-xl hover:text-purple-600 transition-colors"
-        >
-          {showHamburgerMenu ? <X size={20} /> : <Menu size={20} />}
-        </button>
+        <div className="hamburger-menu-container relative">
+          <button
+            onClick={() => setShowHamburgerMenu(!showHamburgerMenu)}
+            className="p-2.5 bg-gray-50 text-gray-500 rounded-xl hover:text-purple-600 transition-colors"
+          >
+            {showHamburgerMenu ? <X size={20} /> : <Menu size={20} />}
+          </button>
 
-        {/* Hamburger Dropdown */}
-        {showHamburgerMenu && (
-          <div className="absolute top-[calc(100%+12px)] right-4 w-56 bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
+          {/* Hamburger Dropdown */}
+          {showHamburgerMenu && (
+            <div className="absolute top-[calc(100%+12px)] right-4 w-56 bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
             <div className="p-2 space-y-1">
               {hamburgerMenuItems.map((item) => (
                 <button
@@ -182,7 +202,8 @@ export default function UserDashboardMobile() {
               </button>
             </div>
           </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Main Content */}
@@ -231,7 +252,10 @@ export default function UserDashboardMobile() {
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => {
+                setActiveTab(tab.id);
+                setShowHamburgerMenu(false);
+              }}
               className={`relative flex flex-col items-center justify-center w-14 h-14 transition-all duration-300 ${
                 isActive ? 'text-white scale-110' : 'text-gray-500 hover:text-gray-300'
               }`}

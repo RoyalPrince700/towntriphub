@@ -18,7 +18,7 @@ const MobileHomeActions = ({ onServiceSelect, onQuickActionSelect }) => {
               </div>
               <div>
                 <h3 className="text-xl font-black text-gray-900 tracking-tight">Book a Ride</h3>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">GMD 50 • 2-5 min</p>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">2-5 min</p>
               </div>
             </div>
             <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 group-hover:text-purple-600 transition-colors">
@@ -40,7 +40,7 @@ const MobileHomeActions = ({ onServiceSelect, onQuickActionSelect }) => {
               </div>
               <div>
                 <h3 className="text-xl font-black text-gray-900 tracking-tight">Send Package</h3>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">GMD 75 • Fast Delivery</p>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Fast Delivery</p>
               </div>
             </div>
             <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 group-hover:text-emerald-600 transition-colors">

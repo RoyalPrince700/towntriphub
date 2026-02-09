@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { MapPin, Package, Scale, Clock, CreditCard, Check, Truck, ArrowRight, XCircle, ChevronRight, DollarSign } from 'lucide-react';
 import { createDeliveryBooking } from '../../services/bookingService';
+import { useAuth } from '../../context/AuthContext';
+import PhoneNumberModal from '../../components/PhoneNumberModal';
 
 const DeliveryBookingFlow = ({ user }) => {
+  const { updateProfile } = useAuth();
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -14,6 +17,7 @@ const DeliveryBookingFlow = ({ user }) => {
   const [recipientName, setRecipientName] = useState('');
   const [recipientPhone, setRecipientPhone] = useState('');
   const [deliveryType, setDeliveryType] = useState('standard');
+  const [showPhoneModal, setShowPhoneModal] = useState(false);
 
   const deliveryOptions = [
     { id: 'standard', name: 'Standard', time: 'Same day', price: 'GMD 75', icon: <Package size={20} />, color: 'indigo' },
@@ -21,7 +25,22 @@ const DeliveryBookingFlow = ({ user }) => {
     { id: 'scheduled', name: 'Scheduled', time: 'Choose time', price: 'GMD 100', icon: <Clock size={20} />, color: 'amber' },
   ];
 
+  const handleSavePhone = async (phoneNumber) => {
+    try {
+      await updateProfile({ phone: phoneNumber });
+      // Phone number is now saved and user data is refreshed automatically
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to save phone number');
+    }
+  };
+
   const handleBooking = async () => {
+    // Check if user has phone number
+    if (!user.phone) {
+      setShowPhoneModal(true);
+      return;
+    }
+
     if (!pickupLocation.trim() || !deliveryLocation.trim() || !packageDescription.trim()) {
       setError('Please fill in all required fields');
       return;
@@ -286,6 +305,14 @@ const DeliveryBookingFlow = ({ user }) => {
           )}
         </button>
       </div>
+
+      {/* Phone Number Modal */}
+      <PhoneNumberModal
+        isOpen={showPhoneModal}
+        onClose={() => setShowPhoneModal(false)}
+        onSave={handleSavePhone}
+        currentPhone={user?.phone || ''}
+      />
     </div>
   );
 };

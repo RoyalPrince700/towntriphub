@@ -37,19 +37,19 @@ const createRideBooking = asyncHandler(async (req, res) => {
   });
 
   const populatedBooking = await Booking.findById(booking._id)
-    .populate('user', 'name email')
+    .populate('user', 'name email phoneNumber')
     .populate({
       path: 'driver',
       populate: {
         path: 'user',
-        select: 'name email',
+        select: 'name email phoneNumber',
       },
     })
     .populate({
       path: 'logisticsPersonnel',
       populate: {
         path: 'user',
-        select: 'name email',
+        select: 'name email phoneNumber',
       },
     });
 
@@ -71,6 +71,7 @@ const createRideBooking = asyncHandler(async (req, res) => {
       type: populatedBooking.type,
       userName: populatedBooking.user.name,
       userEmail: populatedBooking.user.email,
+      userPhone: populatedBooking.user.phoneNumber,
     };
 
     // To User
@@ -113,19 +114,19 @@ const createDeliveryBooking = asyncHandler(async (req, res) => {
   });
 
   const populatedBooking = await Booking.findById(booking._id)
-    .populate('user', 'name email')
+    .populate('user', 'name email phoneNumber')
     .populate({
       path: 'driver',
       populate: {
         path: 'user',
-        select: 'name email',
+        select: 'name email phoneNumber',
       },
     })
     .populate({
       path: 'logisticsPersonnel',
       populate: {
         path: 'user',
-        select: 'name email',
+        select: 'name email phoneNumber',
       },
     });
 
@@ -147,6 +148,7 @@ const createDeliveryBooking = asyncHandler(async (req, res) => {
       type: populatedBooking.type,
       userName: populatedBooking.user.name,
       userEmail: populatedBooking.user.email,
+      userPhone: populatedBooking.user.phoneNumber,
     };
 
     // To User
@@ -457,19 +459,19 @@ const assignDriver = asyncHandler(async (req, res) => {
   await driver.assignBooking(booking._id);
 
   const populatedBooking = await Booking.findById(booking._id)
-    .populate('user', 'name email')
+    .populate('user', 'name email phoneNumber')
     .populate({
       path: 'driver',
       populate: {
         path: 'user',
-        select: 'name email',
+        select: 'name email phoneNumber',
       },
     })
     .populate({
       path: 'logisticsPersonnel',
       populate: {
         path: 'user',
-        select: 'name email',
+        select: 'name email phoneNumber',
       },
     });
 
@@ -670,12 +672,12 @@ const assignLogisticsPersonnel = asyncHandler(async (req, res) => {
   await personnel.save();
 
   const populatedBooking = await Booking.findById(booking._id)
-    .populate('user', 'name email')
+    .populate('user', 'name email phoneNumber')
     .populate({
       path: 'logisticsPersonnel',
       populate: {
         path: 'user',
-        select: 'name email',
+        select: 'name email phoneNumber',
       },
     });
 

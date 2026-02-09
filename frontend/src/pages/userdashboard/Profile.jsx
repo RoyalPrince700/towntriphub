@@ -1,7 +1,21 @@
-import React from 'react';
-import { Settings, User, Mail, Shield, Calendar, Bell, ShieldCheck, ArrowRight, Camera } from 'lucide-react';
+import React, { useState } from 'react';
+import { Settings, User, Mail, Shield, Calendar, Bell, ShieldCheck, ArrowRight, Camera, Phone, Edit } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import PhoneNumberModal from '../../components/PhoneNumberModal';
 
 const Profile = ({ user }) => {
+  const { updateProfile } = useAuth();
+  const [showPhoneModal, setShowPhoneModal] = useState(false);
+
+  const handleSavePhone = async (phoneNumber) => {
+    try {
+      await updateProfile({ phone: phoneNumber });
+      // Phone number is now saved and user data is refreshed automatically
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to save phone number');
+    }
+  };
+
   return (
     <div className="space-y-10 animate-fade-in">
       {/* Profile Header Card */}
@@ -58,14 +72,21 @@ const Profile = ({ user }) => {
               {[
                 { label: 'Full Name', value: user?.name, icon: User },
                 { label: 'Email Address', value: user?.email, icon: Mail },
+                { label: 'Phone Number', value: user?.phone, icon: Phone },
                 { label: 'Account Type', value: user?.role, icon: Shield, capitalize: true },
                 { label: 'Member Since', value: 'January 2024', icon: Calendar },
               ].map((field, i) => (
                 <div key={i} className="space-y-2">
                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{field.label}</p>
-                  <div className="flex items-center p-4 bg-gray-50/50 rounded-2xl border border-gray-100 group hover:border-purple-100 transition-colors">
+                  <div className={`flex items-center p-4 bg-gray-50/50 rounded-2xl border border-gray-100 group hover:border-purple-100 transition-colors ${field.label === 'Phone Number' ? 'cursor-pointer' : ''}`}
+                       onClick={field.label === 'Phone Number' ? () => setShowPhoneModal(true) : undefined}>
                     <field.icon size={18} className="mr-3 text-gray-400 group-hover:text-purple-600 transition-colors" />
-                    <span className={`text-gray-900 font-bold ${field.capitalize ? 'capitalize' : ''}`}>{field.value || 'Not set'}</span>
+                    <span className={`text-gray-900 font-bold ${field.capitalize ? 'capitalize' : ''} flex-1`}>
+                      {field.value || (field.label === 'Phone Number' ? 'Add phone number' : 'Not set')}
+                    </span>
+                    {field.label === 'Phone Number' && (
+                      <Edit size={16} className="text-gray-400 group-hover:text-purple-600 transition-colors ml-2" />
+                    )}
                   </div>
                 </div>
               ))}
@@ -107,6 +128,14 @@ const Profile = ({ user }) => {
           </div>
         </div>
       </div>
+
+      {/* Phone Number Modal */}
+      <PhoneNumberModal
+        isOpen={showPhoneModal}
+        onClose={() => setShowPhoneModal(false)}
+        onSave={handleSavePhone}
+        currentPhone={user?.phone || ''}
+      />
     </div>
   );
 };

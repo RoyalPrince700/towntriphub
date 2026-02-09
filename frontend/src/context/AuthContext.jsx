@@ -101,6 +101,24 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const updateProfile = async (profileData) => {
+    if (!token) throw new Error('No authentication token');
+    try {
+      const res = await api.put('/auth/profile', profileData);
+      const data = res.data;
+      const updatedUser = { ...user, ...data.user };
+      setUser(updatedUser);
+      setStoredAuth({ token, user: updatedUser });
+      return data;
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+      if (error.response?.status === 401) {
+        logout();
+      }
+      throw error;
+    }
+  };
+
   const oauthLogin = (token) => {
     try {
       const decoded = decodeJWT(token);
@@ -111,7 +129,8 @@ export function AuthProvider({ children }) {
           email: decoded.email,
           role: decoded.role || 'user',
           isEmailVerified: decoded.isEmailVerified || false,
-          avatarUrl: decoded.avatarUrl
+          avatarUrl: decoded.avatarUrl,
+          phone: decoded.phone
         };
         saveAuth({ token, user });
         return true;
@@ -143,7 +162,7 @@ export function AuthProvider({ children }) {
 
 
   const value = useMemo(
-    () => ({ token, user, loading, login, register, logout, refreshUser, oauthLogin, requestPasswordReset, resetPassword }),
+    () => ({ token, user, loading, login, register, logout, refreshUser, updateProfile, oauthLogin, requestPasswordReset, resetPassword }),
     [token, user, loading]
   );
 

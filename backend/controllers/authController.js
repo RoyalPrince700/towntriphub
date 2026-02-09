@@ -85,7 +85,52 @@ const verifyEmail = asyncHandler(async (req, res) => {
 const getProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user.id).select('-password');
   if (!user) return res.status(404).json({ message: 'User not found' });
-  res.json({ user: { id: user._id, name: user.name, email: user.email, role: user.role, isEmailVerified: user.isEmailVerified } });
+  res.json({ user: { id: user._id, name: user.name, email: user.email, role: user.role, isEmailVerified: user.isEmailVerified, phone: user.phoneNumber } });
+});
+
+const updateProfile = asyncHandler(async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return buildValidationError(res, errors);
+  }
+
+  const { phone } = req.body;
+  const userId = req.user.id;
+
+  // Validate phone number format if provided
+  if (phone) {
+    const phoneRegex = /^(\+220|220)?[2-9]\d{6}$/;
+    if (!phoneRegex.test(phone.replace(/\s+/g, ''))) {
+      return res.status(400).json({ message: 'Invalid phone number format. Use Gambian format: +220 XXX XXXX or 220XXXXXXX' });
+    }
+  }
+
+  const updateData = {};
+  if (phone !== undefined) {
+    updateData.phoneNumber = phone || null; // Set to null if empty string
+  }
+
+  const user = await User.findByIdAndUpdate(
+    userId,
+    updateData,
+    { new: true, runValidators: true }
+  ).select('-password');
+
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+
+  res.json({
+    message: 'Profile updated successfully',
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      isEmailVerified: user.isEmailVerified,
+      phone: user.phoneNumber
+    }
+  });
 });
 
 const requestPasswordReset = asyncHandler(async (req, res) => {
@@ -123,6 +168,7 @@ module.exports = {
   logout,
   verifyEmail,
   getProfile,
+  updateProfile,
   requestPasswordReset,
   resetPassword,
 };

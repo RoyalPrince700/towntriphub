@@ -311,6 +311,7 @@ class EmailTemplates {
           <div class="details">
             <h3>Booking Details</h3>
             <p><strong>User:</strong> ${bookingDetails.userName} (${bookingDetails.userEmail})</p>
+            <p><strong>Phone:</strong> ${bookingDetails.userPhone || 'N/A'}</p>
             <p><strong>Booking ID:</strong> ${bookingDetails.bookingId}</p>
             <p><strong>Pickup:</strong> ${bookingDetails.pickupLocation}</p>
             <p><strong>Destination:</strong> ${bookingDetails.destination}</p>
