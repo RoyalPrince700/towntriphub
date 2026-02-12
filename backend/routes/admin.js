@@ -7,6 +7,7 @@ const {
   updateUserRole,
   getSystemSettings,
   updateSystemSettings,
+  getAnalytics,
 } = require('../controllers/adminController');
 const { protect, authorize } = require('../middleware/auth');
 
@@ -51,6 +52,15 @@ router.put(
     body('role').isIn(['user', 'admin']).withMessage('Role must be user or admin'),
   ],
   updateUserRole
+);
+
+// Analytics
+router.get(
+  '/analytics',
+  [
+    query('period').optional().isInt({ min: 7, max: 365 }).withMessage('Period must be between 7 and 365 days'),
+  ],
+  getAnalytics
 );
 
 // System settings

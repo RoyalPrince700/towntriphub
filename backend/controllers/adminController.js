@@ -295,6 +295,291 @@ const updateSystemSettings = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Get analytics data for charts
+// @route   GET /api/admin/analytics
+// @access  Private (Admin)
+const getAnalytics = asyncHandler(async (req, res) => {
+  const { period = '30' } = req.query; // Default to last 30 days
+  const days = parseInt(period, 10);
+  
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+  startDate.setHours(0, 0, 0, 0);
+
+  // Bookings over time (daily)
+  const bookingsOverTime = await Booking.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: startDate }
+      }
+    },
+    {
+      $group: {
+        _id: {
+          $dateToString: { format: '%Y-%m-%d', date: '$createdAt' }
+        },
+        count: { $sum: 1 },
+        revenue: { $sum: { $cond: [{ $eq: ['$status', 'completed'] }, '$price.amount', 0] } }
+      }
+    },
+    {
+      $sort: { _id: 1 }
+    }
+  ]);
+
+  // Bookings by type
+  const bookingsByType = await Booking.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: startDate }
+      }
+    },
+    {
+      $group: {
+        _id: '$type',
+        count: { $sum: 1 }
+      }
+    }
+  ]);
+
+  // Bookings by status
+  const bookingsByStatus = await Booking.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: startDate }
+      }
+    },
+    {
+      $group: {
+        _id: '$status',
+        count: { $sum: 1 }
+      }
+    }
+  ]);
+
+  // Revenue over time (daily)
+  const revenueOverTime = await Booking.aggregate([
+    {
+      $match: {
+        status: 'completed',
+        'price.amount': { $exists: true, $ne: null },
+        $or: [
+          { completedAt: { $gte: startDate } },
+          { completedAt: null, updatedAt: { $gte: startDate } }
+        ]
+      }
+    },
+    {
+      $group: {
+        _id: {
+          $dateToString: {
+            format: '%Y-%m-%d',
+            date: { $ifNull: ['$completedAt', '$updatedAt'] }
+          }
+        },
+        revenue: { $sum: '$price.amount' },
+        count: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { _id: 1 }
+    }
+  ]);
+
+  // User growth over time
+  const userGrowth = await User.aggregate([
+    {
+      $match: {
+        role: { $ne: 'admin' },
+        createdAt: { $gte: startDate }
+      }
+    },
+    {
+      $group: {
+        _id: {
+          $dateToString: { format: '%Y-%m-%d', date: '$createdAt' }
+        },
+        count: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { _id: 1 }
+    }
+  ]);
+
+  // Driver growth over time
+  const driverGrowth = await Driver.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: startDate }
+      }
+    },
+    {
+      $group: {
+        _id: {
+          $dateToString: { format: '%Y-%m-%d', date: '$createdAt' }
+        },
+        count: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { _id: 1 }
+    }
+  ]);
+
+  // Logistics personnel growth over time
+  const logisticsGrowth = await LogisticsPersonnel.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: startDate }
+      }
+    },
+    {
+      $group: {
+        _id: {
+          $dateToString: { format: '%Y-%m-%d', date: '$createdAt' }
+        },
+        count: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { _id: 1 }
+    }
+  ]);
+
+  // Average booking value over time
+  const avgBookingValue = await Booking.aggregate([
+    {
+      $match: {
+        status: 'completed',
+        'price.amount': { $exists: true, $ne: null },
+        $or: [
+          { completedAt: { $gte: startDate } },
+          { completedAt: null, updatedAt: { $gte: startDate } }
+        ]
+      }
+    },
+    {
+      $group: {
+        _id: {
+          $dateToString: {
+            format: '%Y-%m-%d',
+            date: { $ifNull: ['$completedAt', '$updatedAt'] }
+          }
+        },
+        avgValue: { $avg: '$price.amount' },
+        count: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { _id: 1 }
+    }
+  ]);
+
+  // Top performing drivers (by completed bookings)
+  const topDrivers = await Booking.aggregate([
+    {
+      $match: {
+        status: 'completed',
+        driver: { $exists: true },
+        'price.amount': { $exists: true, $ne: null },
+        $or: [
+          { completedAt: { $gte: startDate } },
+          { completedAt: null, updatedAt: { $gte: startDate } }
+        ]
+      }
+    },
+    {
+      $group: {
+        _id: '$driver',
+        completedBookings: { $sum: 1 },
+        totalRevenue: { $sum: '$price.amount' }
+      }
+    },
+    {
+      $sort: { completedBookings: -1 }
+    },
+    {
+      $limit: 10
+    },
+    {
+      $lookup: {
+        from: 'drivers',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'driverInfo'
+      }
+    },
+    {
+      $unwind: '$driverInfo'
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'driverInfo.user',
+        foreignField: '_id',
+        as: 'userInfo'
+      }
+    },
+    {
+      $unwind: '$userInfo'
+    },
+    {
+      $project: {
+        driverName: '$userInfo.name',
+        completedBookings: 1,
+        totalRevenue: 1
+      }
+    }
+  ]);
+
+  res.json({
+    success: true,
+    data: {
+      bookingsOverTime: bookingsOverTime.map(item => ({
+        date: item._id,
+        bookings: item.count,
+        revenue: item.revenue || 0
+      })),
+      revenueOverTime: revenueOverTime.map(item => ({
+        date: item._id,
+        revenue: item.revenue || 0,
+        bookings: item.count
+      })),
+      bookingsByType: bookingsByType.map(item => ({
+        type: item._id,
+        count: item.count
+      })),
+      bookingsByStatus: bookingsByStatus.map(item => ({
+        status: item._id,
+        count: item.count
+      })),
+      userGrowth: userGrowth.map(item => ({
+        date: item._id,
+        count: item.count
+      })),
+      driverGrowth: driverGrowth.map(item => ({
+        date: item._id,
+        count: item.count
+      })),
+      logisticsGrowth: logisticsGrowth.map(item => ({
+        date: item._id,
+        count: item.count
+      })),
+      avgBookingValue: avgBookingValue.map(item => ({
+        date: item._id,
+        avgValue: Math.round(item.avgValue || 0),
+        count: item.count
+      })),
+      topDrivers: topDrivers.map(item => ({
+        name: item.driverName,
+        completedBookings: item.completedBookings,
+        totalRevenue: item.totalRevenue || 0
+      }))
+    }
+  });
+});
+
 module.exports = {
   getAdminStats,
   getAllUsers,
@@ -302,4 +587,5 @@ module.exports = {
   updateUserRole,
   getSystemSettings,
   updateSystemSettings,
+  getAnalytics,
 };

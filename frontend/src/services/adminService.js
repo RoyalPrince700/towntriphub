@@ -6,6 +6,12 @@ export const getAdminStats = async () => {
   return response.data;
 };
 
+// Analytics Data
+export const getAnalytics = async (period = 30) => {
+  const response = await api.get('/admin/analytics', { params: { period } });
+  return response.data;
+};
+
 // Bookings Management
 export const getAllBookings = async (params = {}) => {
   const response = await api.get('/bookings/admin', { params });
@@ -101,6 +107,7 @@ export const updateUserRole = async (userId, role) => {
 
 export default {
   getAdminStats,
+  getAnalytics,
   getAllBookings,
   assignDriver,
   getAvailableDrivers,
