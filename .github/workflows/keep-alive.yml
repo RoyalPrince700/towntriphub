@@ -1,39 +1,28 @@
-name: Keep Render Backend Alive
+name: Keep Backend Alive
 
 on:
   schedule:
-    # Run every 8 minutes (GitHub scheduled workflows can be delayed under load)
-    - cron: '*/8 * * * *'
-  workflow_dispatch: # Allow manual trigger
-
-concurrency:
-  group: keep-alive
-  cancel-in-progress: true
+    # Run every 13 minutes: at minutes 0, 13, 26, 39, 52 of every hour
+    - cron: '0 * * * *'
+    - cron: '13 * * * *'
+    - cron: '26 * * * *'
+    - cron: '39 * * * *'
+    - cron: '52 * * * *'
+  workflow_dispatch: # Allow manual triggering
 
 jobs:
   ping-backend:
     runs-on: ubuntu-latest
-    timeout-minutes: 2
-
-    env:
-      # Optional: set a repo secret BACKEND_URL to override this.
-      BACKEND_URL: "${{ secrets.BACKEND_URL || 'https://towntriphub.onrender.com/' }}"
 
     steps:
-      - name: Ping Render Backend
-        run: |
-          echo "Pinging backend: ${BACKEND_URL}"
-          echo "Time: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+    - name: Ping Backend
+      run: |
+        echo "Pinging backend at https://towntriphub.onrender.com"
+        curl -f https://towntriphub.onrender.com || echo "Ping failed, but continuing..."
 
-          # Keep-alive should not fail the workflow. We still retry to reduce flakiness.
-          curl --location \
-            --silent --show-error \
-            --max-time 25 \
-            --retry 5 \
-            --retry-all-errors \
-            --retry-delay 5 \
-            --write-out "\nHTTP %{http_code}\n" \
-            --output /dev/null \
-            "${BACKEND_URL}" || true
+    - name: Health Check
+      run: |
+        echo "Performing health check"
+        # Try to access a common health endpoint or root
+        curl -f https://towntriphub.onrender.com/health || curl -f https://towntriphub.onrender.com/ || echo "Health check completed"
 
-          echo "Ping attempt completed"
