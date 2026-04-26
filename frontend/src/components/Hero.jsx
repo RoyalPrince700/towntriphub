@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { ArrowRight, Shield, MapPin } from 'lucide-react';
 
 const Hero = () => {
   const { user } = useAuth();
+  const [mapError, setMapError] = useState(false);
 
   return (
     <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
@@ -82,16 +83,36 @@ const Hero = () => {
 
           <div className="relative">
             <div className="relative z-10 bg-gradient-to-tr from-purple-100 to-purple-50 rounded-3xl p-2 shadow-2xl overflow-hidden transform hover:scale-[1.02] transition-transform duration-500">
-              {/* Interactive Map of Popular Area in The Gambia - Serrekunda */}
+              {/* Hero Map Visualization - Static for landing page (no API calls) */}
               <div className="relative rounded-2xl overflow-hidden h-[320px] sm:h-[420px] lg:h-[500px] bg-gray-900">
-                <img
-                  src={`https://maps.googleapis.com/maps/api/staticmap?center=Serrekunda,Gambia&zoom=13&size=800x500&scale=2&maptype=roadmap&markers=color:red%7Clabel:S%7CSerrekunda,Gambia&markers=color:blue%7Clabel:B%7CBanjul,Gambia&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&style=feature:water|color:0x4a90e2&style=feature:road|visibility:simplified`}
-                  alt="Map of Serrekunda - Popular hub in The Gambia"
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.src = 'https://via.placeholder.com/800x500/1a365d/ffffff?text=Serrekunda+Map+of+The+Gambia';
-                  }}
-                />
+                {!mapError ? (
+                  <img
+                    src="https://picsum.photos/id/1015/800/500"
+                    alt="Map of Serrekunda - Popular hub in The Gambia"
+                    className="w-full h-full object-cover"
+                    onError={() => setMapError(true)}
+                    onLoad={() => setMapError(false)}
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-emerald-900 via-blue-900 to-indigo-900 flex items-center justify-center relative overflow-hidden">
+                    {/* CSS-based map visualization fallback */}
+                    <div className="absolute inset-0 bg-[radial-gradient(#ffffff15_1px,transparent_1px)] bg-[length:20px_20px]"></div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-center text-white/90">
+                        <MapPin size={64} className="mx-auto mb-4 opacity-75" />
+                        <div className="text-2xl font-bold tracking-widest mb-2">SERREKUNDA</div>
+                        <div className="text-sm opacity-75">THE GAMBIA • LIVE TRANSPORT HUB</div>
+                        <div className="mt-6 text-[10px] font-mono opacity-50">13.45°N • -16.68°W</div>
+                      </div>
+                    </div>
+                    {/* Decorative map lines */}
+                    <div className="absolute inset-0 opacity-20">
+                      <div className="absolute top-1/4 left-0 right-0 h-px bg-white"></div>
+                      <div className="absolute top-1/3 left-1/4 w-px h-1/3 bg-white"></div>
+                      <div className="absolute bottom-1/4 left-1/3 right-1/3 h-px bg-white rotate-12"></div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Map Overlay Info */}
                 <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-md rounded-2xl p-3 sm:p-4 shadow-xl border border-white/50 max-w-[200px] sm:max-w-[220px]">
@@ -127,7 +148,7 @@ const Hero = () => {
               </div>
 
               {/* Legend - hidden on very small screens to avoid overlap */}
-              <div className="hidden sm:block absolute -bottom-3 left-1/2 -translate-x-1/2 bg-white text-xs px-4 py-1.5 rounded-full shadow-md flex items-center gap-2 text-gray-500 border">
+              <div className="hidden sm:flex absolute -bottom-3 left-1/2 -translate-x-1/2 bg-white text-xs px-4 py-1.5 rounded-full shadow-md items-center gap-2 text-gray-500 border">
                 <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
                 <span>Serrekunda (High activity)</span>
                 <div className="w-px h-3 bg-gray-300 mx-1"></div>

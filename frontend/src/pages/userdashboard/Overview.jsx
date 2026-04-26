@@ -220,10 +220,13 @@ const Overview = ({ stats, recentBookings, driverProfile, logisticsProfile }) =>
                     {booking.driver ? (
                       <div className="flex items-start space-x-6">
                         <div className="relative">
-                          <img 
-                            src={booking.driver.user?.avatarUrl || booking.driver.documents?.profilePhoto || 'https://via.placeholder.com/150'} 
-                            alt="Driver" 
+                          <img
+                            src={booking.driver.user?.avatarUrl || booking.driver.documents?.profilePhoto || 'https://picsum.photos/id/64/150/150'}
+                            alt="Driver"
                             className="h-24 w-24 rounded-3xl object-cover border-4 border-purple-50 shadow-xl"
+                            onError={(e) => {
+                              e.target.src = 'https://picsum.photos/id/64/150/150';
+                            }}
                           />
                           <div className="absolute -bottom-2 -right-2 bg-emerald-500 border-4 border-white h-7 w-7 rounded-full shadow-lg"></div>
                         </div>

@@ -131,13 +131,14 @@ const MapWithDirections = ({
   if (error || (!isLoaded && !hasLoadedSuccessfully)) {
     return (
       <div className={`${className} bg-gray-900 rounded-2xl overflow-hidden border border-gray-700 flex flex-col items-center justify-center relative`}>
-        {/* Fallback Map Image */}
+        {/* Fallback Map Image - Static to avoid unnecessary API calls */}
         <img
-          src={`https://maps.googleapis.com/maps/api/staticmap?center=Serrekunda,Gambia&zoom=13&size=800x500&scale=2&maptype=roadmap&markers=color:red%7Clabel:S%7CSerrekunda&markers=color:blue%7Clabel:K%7CKololi&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'demo'}`}
+          src="https://picsum.photos/id/1015/800/500"
           alt="Serrekunda to Kololi Map - The Gambia"
           className="absolute inset-0 w-full h-full object-cover opacity-70"
           onError={(e) => {
-            e.target.src = 'https://picsum.photos/id/1015/800/500';
+            // Ultimate fallback if picsum fails (rare)
+            e.target.style.display = 'none';
           }}
         />
 

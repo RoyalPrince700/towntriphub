@@ -16,10 +16,31 @@ export const SocketProvider = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
+    // Only initialize socket for authenticated users to avoid unnecessary connections
+    // on public pages like home, about, etc.
+    const authData = localStorage.getItem('tth_auth');
+    if (!authData) {
+      return;
+    }
+
+    let token;
+    try {
+      const parsed = JSON.parse(authData);
+      token = parsed.token;
+    } catch (e) {
+      console.warn('Invalid auth data in localStorage');
+      return;
+    }
+
+    if (!token) return;
+
     const socketInstance = io(import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000', {
       auth: {
-        token: localStorage.getItem('token')
-      }
+        token
+      },
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
     });
 
     socketInstance.on('connect', () => {
@@ -35,7 +56,9 @@ export const SocketProvider = ({ children }) => {
     setSocket(socketInstance);
 
     return () => {
-      socketInstance.disconnect();
+      if (socketInstance) {
+        socketInstance.disconnect();
+      }
     };
   }, []);
 
