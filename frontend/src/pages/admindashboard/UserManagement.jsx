@@ -22,7 +22,10 @@ const UserManagement = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const params = {};
+      const params = {
+        limit: 100,
+        page: 1,
+      };
 
       if (statusFilter !== 'all') {
         params.status = statusFilter;

@@ -18,12 +18,16 @@ const driverRoutes = require('./routes/driver');
 const logisticsRoutes = require('./routes/logistics');
 const adminRoutes = require('./routes/admin');
 const savedPlacesRoutes = require('./routes/savedPlaces');
+const fareRoutes = require('./routes/fare');
+const placesRoutes = require('./routes/places');
+const adminMonitoringRoutes = require('./routes/adminMonitoring');
 // const userRoutes = require('./routes/users');
 // const tripRoutes = require('./routes/trips');
 // const paymentRoutes = require('./routes/payments');
 
 // Import error handling middleware
 const { errorHandler, notFound } = require('./middleware/errorMiddleware');
+const socketService = require('./services/socketService');
 
 const app = express();
 
@@ -161,6 +165,9 @@ app.use('/api/drivers', driverRoutes);
 app.use('/api/logistics', logisticsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/saved-places', savedPlacesRoutes);
+app.use('/api/fare', fareRoutes);
+app.use('/api/places', placesRoutes);
+app.use('/api/admin-monitoring', adminMonitoringRoutes);
 // app.use('/api/users', userRoutes);
 // app.use('/api/trips', tripRoutes);
 // app.use('/api/payments', paymentRoutes);
@@ -214,6 +221,10 @@ const startServer = async () => {
       console.log(`✅ Connected to port: ${PORT}`);
       console.log(`✅ MongoDB connected`);
     });
+
+    // Initialize Socket.io
+    socketService.initialize(server);
+    console.log(`✅ Socket.io initialized`);
 
     // Handle unhandled promise rejections
     process.on('unhandledRejection', (err, promise) => {

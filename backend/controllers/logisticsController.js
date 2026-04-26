@@ -531,7 +531,7 @@ const getAllLogisticsPersonnel = asyncHandler(async (req, res) => {
     status,
     availabilityStatus,
     page = 1,
-    limit = 10,
+    limit = 50,
     search,
   } = req.query;
 

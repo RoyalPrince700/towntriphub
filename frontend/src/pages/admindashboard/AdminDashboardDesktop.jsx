@@ -10,6 +10,7 @@ import LogisticsPersonnelManagement from './LogisticsPersonnelManagement';
 import UserManagement from './UserManagement';
 import Analytics from './Analytics';
 import SystemSettings from './SystemSettings';
+import TripMonitoring from './TripMonitoring';
 
 const AdminDashboardDesktop = () => {
   const { user } = useAuth();
@@ -23,6 +24,8 @@ const AdminDashboardDesktop = () => {
         return <AdminOverview />;
       case 'bookings':
         return <BookingManagement />;
+      case 'trip-monitoring':
+        return <TripMonitoring />;
       case 'drivers':
         return <DriverManagement />;
       case 'logistics':

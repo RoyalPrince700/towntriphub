@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { ArrowRight, Shield, Car, MapPin } from 'lucide-react';
+import { ArrowRight, Shield, MapPin } from 'lucide-react';
 
 const Hero = () => {
   const { user } = useAuth();
@@ -80,29 +80,62 @@ const Hero = () => {
             </div>
           </div>
 
-          <div className="relative hidden lg:block">
+          <div className="relative">
             <div className="relative z-10 bg-gradient-to-tr from-purple-100 to-purple-50 rounded-3xl p-2 shadow-2xl overflow-hidden transform hover:scale-[1.02] transition-transform duration-500">
-              <img 
-                src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" 
-                alt="Reliable Ride" 
-                className="rounded-2xl object-cover w-full h-[500px]"
-              />
-              
-              {/* Floating Cards */}
-              <div className="absolute bottom-6 left-6 right-6 bg-white/90 backdrop-blur-md rounded-2xl p-4 shadow-xl border border-white/50 animate-float">
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center text-white">
-                    <Shield size={24} />
+              {/* Interactive Map of Popular Area in The Gambia - Serrekunda */}
+              <div className="relative rounded-2xl overflow-hidden h-[320px] sm:h-[420px] lg:h-[500px] bg-gray-900">
+                <img
+                  src={`https://maps.googleapis.com/maps/api/staticmap?center=Serrekunda,Gambia&zoom=13&size=800x500&scale=2&maptype=roadmap&markers=color:red%7Clabel:S%7CSerrekunda,Gambia&markers=color:blue%7Clabel:B%7CBanjul,Gambia&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&style=feature:water|color:0x4a90e2&style=feature:road|visibility:simplified`}
+                  alt="Map of Serrekunda - Popular hub in The Gambia"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.src = 'https://via.placeholder.com/800x500/1a365d/ffffff?text=Serrekunda+Map+of+The+Gambia';
+                  }}
+                />
+
+                {/* Map Overlay Info */}
+                <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-md rounded-2xl p-3 sm:p-4 shadow-xl border border-white/50 max-w-[200px] sm:max-w-[220px]">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center">
+                      <MapPin size={18} className="text-white" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-emerald-700 text-sm">SERREKUNDA</p>
+                      <p className="text-[10px] text-emerald-600 -mt-0.5">Popular Transport Hub</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-bold text-gray-900">Safety First</p>
-                    <p className="text-xs text-gray-500">All drivers are verified & vetted</p>
+                  <p className="text-xs text-gray-600 leading-tight">
+                    The commercial heart of The Gambia. High demand for rides, markets, and connections to Banjul, Kololi beaches &amp; tourist areas.
+                  </p>
+                </div>
+
+                {/* Floating Stats on Map */}
+                <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 bg-white/90 backdrop-blur-md rounded-2xl p-3 sm:p-4 shadow-xl border border-white/50 text-center">
+                  <div className="text-emerald-600 text-xs font-mono mb-1">LIVE IN GAMBIA</div>
+                  <div className="flex items-center justify-center gap-4 text-sm">
+                    <div>
+                      <div className="font-bold text-gray-900">13.45°N</div>
+                      <div className="text-[10px] text-gray-500">LAT</div>
+                    </div>
+                    <div className="h-6 w-px bg-gray-200"></div>
+                    <div>
+                      <div className="font-bold text-gray-900">-16.68°W</div>
+                      <div className="text-[10px] text-gray-500">LNG</div>
+                    </div>
                   </div>
                 </div>
               </div>
+
+              {/* Legend - hidden on very small screens to avoid overlap */}
+              <div className="hidden sm:block absolute -bottom-3 left-1/2 -translate-x-1/2 bg-white text-xs px-4 py-1.5 rounded-full shadow-md flex items-center gap-2 text-gray-500 border">
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                <span>Serrekunda (High activity)</span>
+                <div className="w-px h-3 bg-gray-300 mx-1"></div>
+                <span className="text-emerald-600">Popular rides area</span>
+              </div>
             </div>
 
-            {/* Background elements for image */}
+            {/* Background elements */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-purple-600/5 rounded-full -z-10 blur-3xl"></div>
           </div>
         </div>

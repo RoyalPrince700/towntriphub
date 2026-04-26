@@ -24,10 +24,13 @@ import {
 } from 'lucide-react';
 import { getUserRatingStats, getUserReviews, getGivenReviews } from '../../services/reviewService';
 import RatingReviewComponent from '../../components/RatingReviewComponent';
+import MapWithDirections from '../../components/MapWithDirections';
+import { useGoogleMaps } from '../../context/GoogleMapsContext.jsx';
 
 const Overview = ({ stats, recentBookings, driverProfile, logisticsProfile }) => {
   const navigate = useNavigate();
   const { refreshUser, user } = useAuth();
+  const { isLoaded: mapsLoaded } = useGoogleMaps();
   const userId = user?._id || user?.id;
   const [driverRatings, setDriverRatings] = useState({});
   const [driverRecentReviews, setDriverRecentReviews] = useState({});
@@ -197,8 +200,12 @@ const Overview = ({ stats, recentBookings, driverProfile, logisticsProfile }) =>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
-                   <button className="bg-white/20 backdrop-blur-md hover:bg-white/30 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all">
-                    Track on Map
+                   <button 
+                     onClick={() => window.scrollTo({ top: 800, behavior: 'smooth' })}
+                     className="bg-white/20 backdrop-blur-md hover:bg-white/30 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2"
+                   >
+                     <MapPin size={16} />
+                     View Live Map
                    </button>
                    <button className="bg-white text-purple-600 px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-purple-900/20 hover:bg-purple-50 transition-all">
                     Safety Center
@@ -307,6 +314,28 @@ const Overview = ({ stats, recentBookings, driverProfile, logisticsProfile }) =>
                     </div>
                   </div>
                 </div>
+
+                {/* Live Route Map for User */}
+                {mapsLoaded && booking.pickupLocation?.coordinates && booking.destinationLocation?.coordinates && (
+                  <div className="mt-8 pt-8 border-t border-gray-100">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                        <p className="font-semibold text-gray-900">Live Route • Real-time Navigation</p>
+                      </div>
+                      <span className="text-xs bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-medium">Serrekunda → Kololi Area</span>
+                    </div>
+                    <MapWithDirections
+                      pickupCoords={booking.pickupLocation.coordinates}
+                      destinationCoords={booking.destinationLocation.coordinates}
+                      driverLocation={booking.driverLocation || (booking.driver?.location)}
+                      className="h-80 w-full rounded-3xl shadow-inner border border-gray-100 overflow-hidden"
+                    />
+                    <p className="text-center text-[10px] text-gray-400 mt-3">
+                      Blue route shows your trip • Blue dot shows driver location (updates live)
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           ))}

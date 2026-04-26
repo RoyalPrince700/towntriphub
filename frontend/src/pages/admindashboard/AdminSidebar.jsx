@@ -13,7 +13,8 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
-  X
+  X,
+  MapPin
 } from 'lucide-react';
 
 const AdminSidebar = ({
@@ -40,6 +41,7 @@ const AdminSidebar = ({
   const menuItems = [
     { id: 'overview', label: 'Overview', icon: BarChart3, description: 'Dashboard & stats' },
     { id: 'bookings', label: 'Bookings', icon: Car, description: 'Manage all bookings' },
+    { id: 'trip-monitoring', label: 'Trip Monitoring', icon: MapPin, description: 'Live active trips' },
     { id: 'drivers', label: 'Drivers', icon: UserCheck, description: 'Driver management' },
     { id: 'logistics', label: 'Logistics', icon: Package, description: 'Logistics orders' },
     { id: 'logistics-personnel', label: 'Logistics Personnel', icon: Shield, description: 'Delivery personnel' },

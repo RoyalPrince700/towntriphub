@@ -21,6 +21,8 @@ import DriverRegistration from './pages/DriverRegistration.jsx';
 import LogisticsPersonnelRegistration from './pages/LogisticsPersonnelRegistration.jsx';
 import { Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
+import { GoogleMapsProvider } from './context/GoogleMapsContext.jsx';
+import { SocketProvider } from './context/SocketContext.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import BookingDetails from './pages/BookingDetails.jsx';
 
@@ -46,8 +48,10 @@ function RoleBasedDashboard() {
 
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
+    <SocketProvider>
+      <GoogleMapsProvider>
+        <AuthProvider>
+        <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/careers" element={<Career />} />
@@ -109,7 +113,9 @@ function App() {
           />
         </Routes>
       </BrowserRouter>
-    </AuthProvider>
+        </AuthProvider>
+      </GoogleMapsProvider>
+    </SocketProvider>
   );
 }
 

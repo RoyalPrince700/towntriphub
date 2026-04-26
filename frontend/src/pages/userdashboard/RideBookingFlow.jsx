@@ -4,11 +4,20 @@ import { createRideBooking } from '../../services/bookingService';
 import { createSavedPlace } from '../../services/savedPlacesService';
 import { useAuth } from '../../context/AuthContext';
 import PhoneNumberModal from '../../components/PhoneNumberModal';
+import LocationAutocomplete from '../../components/LocationAutocomplete';
 
 const RideBookingFlow = ({ user, prefilledPickup = '', prefilledDestination = '' }) => {
   const { updateProfile } = useAuth();
-  const [pickupLocation, setPickupLocation] = useState(prefilledPickup);
-  const [destination, setDestination] = useState(prefilledDestination);
+  const initPickup = () => ({
+    address: typeof prefilledPickup === 'string' ? prefilledPickup : (prefilledPickup?.address ?? ''),
+    coordinates: { latitude: null, longitude: null }
+  });
+  const initDestination = () => ({
+    address: typeof prefilledDestination === 'string' ? prefilledDestination : (prefilledDestination?.address ?? ''),
+    coordinates: { latitude: null, longitude: null }
+  });
+  const [pickupLocation, setPickupLocation] = useState(initPickup);
+  const [destinationLocation, setDestinationLocation] = useState(initDestination);
   const [passengers, setPassengers] = useState(1);
   const [scheduledTime, setScheduledTime] = useState('');
   const [loading, setLoading] = useState(false);
@@ -41,7 +50,7 @@ const RideBookingFlow = ({ user, prefilledPickup = '', prefilledDestination = ''
     try {
       const placeData = {
         name: savePlaceName.trim(),
-        address: type === 'pickup' ? pickupLocation : destination,
+        address: type === 'pickup' ? pickupLocation.address : destinationLocation.address,
         type,
       };
 
@@ -69,12 +78,15 @@ const RideBookingFlow = ({ user, prefilledPickup = '', prefilledDestination = ''
       return;
     }
 
-    if (!pickupLocation.trim() || !destination.trim()) {
-      setError('Please enter both pickup location and destination');
+    const isValidPickup = pickupLocation.address?.trim() && pickupLocation.coordinates?.latitude && pickupLocation.coordinates?.longitude;
+    const isValidDestination = destinationLocation.address?.trim() && destinationLocation.coordinates?.latitude && destinationLocation.coordinates?.longitude;
+
+    if (!isValidPickup || !isValidDestination) {
+      setError('Please select both pickup and destination locations from the autocomplete suggestions (coordinates are required for routing and fare calculation)');
       return;
     }
 
-    if (pickupLocation.trim() === destination.trim()) {
+    if (pickupLocation.address?.trim() === destinationLocation.address?.trim()) {
       setError('Pickup and destination cannot be the same');
       return;
     }
@@ -84,14 +96,8 @@ const RideBookingFlow = ({ user, prefilledPickup = '', prefilledDestination = ''
 
     try {
       const bookingData = {
-        pickupLocation: {
-          address: pickupLocation,
-          coordinates: { latitude: null, longitude: null }
-        },
-        destinationLocation: {
-          address: destination,
-          coordinates: { latitude: null, longitude: null }
-        },
+        pickupLocation,
+        destinationLocation,
         passengers,
         scheduledTime: scheduledTime || null
       };
@@ -122,7 +128,7 @@ const RideBookingFlow = ({ user, prefilledPickup = '', prefilledDestination = ''
               </div>
               <div className="text-left">
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Pickup</p>
-                <p className="text-sm font-bold text-gray-700 leading-snug">{pickupLocation}</p>
+                <p className="text-sm font-bold text-gray-700 leading-snug">{pickupLocation?.address ?? ''}</p>
               </div>
             </div>
             <div className="flex items-start space-x-4">
@@ -131,7 +137,7 @@ const RideBookingFlow = ({ user, prefilledPickup = '', prefilledDestination = ''
               </div>
               <div className="text-left">
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Destination</p>
-                <p className="text-sm font-bold text-gray-700 leading-snug">{destination}</p>
+                <p className="text-sm font-bold text-gray-700 leading-snug">{destinationLocation?.address ?? ''}</p>
               </div>
             </div>
           </div>
@@ -139,8 +145,8 @@ const RideBookingFlow = ({ user, prefilledPickup = '', prefilledDestination = ''
           <button
             onClick={() => {
               setSuccess(false);
-              setPickupLocation('');
-              setDestination('');
+              setPickupLocation({ address: '', coordinates: { latitude: null, longitude: null } });
+              setDestinationLocation({ address: '', coordinates: { latitude: null, longitude: null } });
               setPassengers(1);
               setScheduledTime('');
               setError('');
@@ -179,46 +185,46 @@ const RideBookingFlow = ({ user, prefilledPickup = '', prefilledDestination = ''
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
           <div className="space-y-6 md:col-span-2">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Pickup Location</label>
-              <div className="relative group">
-                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-emerald-500 transition-colors" size={20} />
-                <input
-                  type="text"
-                  placeholder="Where should we pick you up?"
-                  value={pickupLocation}
-                  onChange={(e) => setPickupLocation(e.target.value)}
-                  className="w-full pl-12 pr-12 py-4 bg-gray-50 border border-gray-100 rounded-[1.25rem] focus:bg-white focus:ring-4 focus:ring-emerald-50 focus:border-emerald-200 transition-all text-sm font-bold"
-                />
-                {pickupLocation.trim() && (
+              <div className="flex items-end gap-2">
+                <div className="flex-1">
+                  <LocationAutocomplete
+                    label="Pickup Location"
+                    placeholder="Where should we pick you up?"
+                    value={pickupLocation}
+                    onChange={(location) => setPickupLocation(location)}
+                    required
+                  />
+                </div>
+                {pickupLocation.address?.trim() && pickupLocation.coordinates?.latitude && pickupLocation.coordinates?.longitude && (
                   <button
                     onClick={() => setShowSavePickupDialog(true)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-emerald-500 transition-colors"
+                    className="pb-3 text-gray-400 hover:text-emerald-500 transition-colors shrink-0"
                     title="Save this location"
                   >
-                    <Bookmark size={18} />
+                    <Bookmark size={20} />
                   </button>
                 )}
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Destination</label>
-              <div className="relative group">
-                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-purple-600 transition-colors" size={20} />
-                <input
-                  type="text"
-                  placeholder="Where are you heading?"
-                  value={destination}
-                  onChange={(e) => setDestination(e.target.value)}
-                  className="w-full pl-12 pr-12 py-4 bg-gray-50 border border-gray-100 rounded-[1.25rem] focus:bg-white focus:ring-4 focus:ring-purple-50 focus:border-purple-200 transition-all text-sm font-bold"
-                />
-                {destination.trim() && (
+              <div className="flex items-end gap-2">
+                <div className="flex-1">
+                  <LocationAutocomplete
+                    label="Destination"
+                    placeholder="Where are you heading?"
+                    value={destinationLocation}
+                    onChange={(location) => setDestinationLocation(location)}
+                    required
+                  />
+                </div>
+                {destinationLocation.address?.trim() && destinationLocation.coordinates?.latitude && destinationLocation.coordinates?.longitude && (
                   <button
                     onClick={() => setShowSaveDestinationDialog(true)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-purple-600 transition-colors"
+                    className="pb-3 text-gray-400 hover:text-purple-600 transition-colors shrink-0"
                     title="Save this location"
                   >
-                    <Bookmark size={18} />
+                    <Bookmark size={20} />
                   </button>
                 )}
               </div>
@@ -256,11 +262,40 @@ const RideBookingFlow = ({ user, prefilledPickup = '', prefilledDestination = ''
           </div>
         </div>
 
+        {/* Validation Status */}
+        {(!pickupLocation.coordinates?.latitude || !destinationLocation.coordinates?.latitude) && (
+          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl text-sm">
+            <div className="flex items-start gap-3">
+              <div className="w-5 h-5 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 text-base">!</div>
+              <div>
+                <p className="font-bold text-amber-800 mb-1">Location Selection Required</p>
+                <p className="text-amber-700 text-xs leading-relaxed">
+                  You must select addresses from the dropdown suggestions. This ensures we have accurate coordinates for:
+                </p>
+                <ul className="text-[10px] text-amber-600 mt-2 space-y-1 list-disc pl-4">
+                  <li>Calculating exact fare</li>
+                  <li>Showing route on map</li>
+                  <li>Matching with nearby drivers</li>
+                </ul>
+                <p className="text-[10px] text-amber-500 mt-3">Typing alone is not enough — click a suggestion to confirm.</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <button
           onClick={handleBooking}
-          disabled={!pickupLocation || !destination || loading}
+          disabled={loading || !pickupLocation.address?.trim() || !destinationLocation.address?.trim() ||
+                   !pickupLocation.coordinates?.latitude || !pickupLocation.coordinates?.longitude ||
+                   !destinationLocation.coordinates?.latitude || !destinationLocation.coordinates?.longitude}
           className={`w-full py-5 rounded-[1.5rem] font-black text-sm uppercase tracking-widest transition-all flex items-center justify-center space-x-3 ${
-            pickupLocation && destination && !loading
+            !loading &&
+            pickupLocation.address?.trim() &&
+            destinationLocation.address?.trim() &&
+            pickupLocation.coordinates?.latitude &&
+            pickupLocation.coordinates?.longitude &&
+            destinationLocation.coordinates?.latitude &&
+            destinationLocation.coordinates?.longitude
               ? 'bg-purple-600 text-white shadow-xl shadow-purple-100 hover:bg-purple-700 hover:scale-[1.02] active:scale-[0.98]'
               : 'bg-gray-100 text-gray-400 cursor-not-allowed'
           }`}
@@ -307,7 +342,7 @@ const RideBookingFlow = ({ user, prefilledPickup = '', prefilledDestination = ''
             <div className="space-y-6">
               <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Location</p>
-                <p className="text-sm font-bold text-gray-700 leading-snug">{pickupLocation}</p>
+                <p className="text-sm font-bold text-gray-700 leading-snug">{pickupLocation?.address ?? ''}</p>
               </div>
 
               <div className="space-y-2">
@@ -373,7 +408,7 @@ const RideBookingFlow = ({ user, prefilledPickup = '', prefilledDestination = ''
             <div className="space-y-6">
               <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Location</p>
-                <p className="text-sm font-bold text-gray-700 leading-snug">{destination}</p>
+                <p className="text-sm font-bold text-gray-700 leading-snug">{destinationLocation?.address ?? ''}</p>
               </div>
 
               <div className="space-y-2">

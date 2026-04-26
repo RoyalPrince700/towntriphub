@@ -146,7 +146,7 @@ const getAllUsers = asyncHandler(async (req, res) => {
     status,
     role,
     page = 1,
-    limit = 10,
+    limit = 100,
     search,
   } = req.query;
 

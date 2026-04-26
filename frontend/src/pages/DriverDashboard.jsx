@@ -29,13 +29,21 @@ import {
   updateDriverAvailability, 
   updateTripStatus 
 } from '../services/driverService';
+import { useSocket } from '../context/SocketContext';
+import { DriverLocationService } from '../services/driverLocationService';
 import { cancelBooking } from '../services/bookingService';
 import { getUserReviews } from '../services/reviewService';
+import MapWithDirections from '../components/MapWithDirections';
+import { useGoogleMaps } from '../context/GoogleMapsContext';
 
 const DriverDashboard = () => {
   const { user } = useAuth();
+  const { socket, isConnected } = useSocket();
+  const { isLoaded: mapsLoaded } = useGoogleMaps();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
+  const [locationService, setLocationService] = useState(null);
+  const [isTrackingLocation, setIsTrackingLocation] = useState(false);
   const [driverProfile, setDriverProfile] = useState(null);
   const [assignments, setAssignments] = useState([]);
   const [statistics, setStatistics] = useState(null);
@@ -57,6 +65,29 @@ const DriverDashboard = () => {
     }
     fetchDriverData();
   }, [user, navigate]);
+
+  // Initialize location service when socket and driver profile are ready
+  useEffect(() => {
+    if (socket && driverProfile) {
+      const service = new DriverLocationService(socket);
+      setLocationService(service);
+    }
+  }, [socket, driverProfile]);
+
+  const toggleLocationTracking = () => {
+    if (!locationService || !driverProfile) return;
+
+    const driverId = driverProfile._id || driverProfile.user?._id;
+    if (!driverId) return;
+
+    if (isTrackingLocation) {
+      locationService.stopLocationTracking();
+      setIsTrackingLocation(false);
+    } else {
+      locationService.startLocationTracking(driverId);
+      setIsTrackingLocation(true);
+    }
+  };
 
   useEffect(() => {
     if (activeTab === 'reviews' && driverProfile) {
@@ -541,6 +572,31 @@ const DriverDashboard = () => {
                   )}
                 </div>
 
+                {/* Location Tracking */}
+                {driverProfile?.status === 'approved' && (
+                  <div className="bg-white rounded-lg shadow p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-medium text-gray-900">Location Tracking</h3>
+                        <p className="text-sm text-gray-500">
+                          {isTrackingLocation ? 'Sharing location with riders' : 'Not sharing location'}
+                        </p>
+                      </div>
+                      <button
+                        onClick={toggleLocationTracking}
+                        className={`px-4 py-2 rounded-lg font-medium ${
+                          isTrackingLocation
+                            ? 'bg-red-600 text-white hover:bg-red-700'
+                            : 'bg-green-600 text-white hover:bg-green-700'
+                        }`}
+                        disabled={!isConnected}
+                      >
+                        {isTrackingLocation ? 'Stop Tracking' : 'Start Tracking'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Quick Availability Toggle (Small Version) */}
                 <div className="bg-indigo-900 rounded-lg shadow p-6 text-white">
                   <h3 className="text-sm font-bold mb-4 opacity-80">Online Status</h3>
@@ -703,6 +759,28 @@ const DriverDashboard = () => {
                             </div>
                           </div>
                         </div>
+
+                        {/* Live Route Map */}
+                        {ride.pickupLocation?.coordinates && ride.destinationLocation?.coordinates && mapsLoaded && (
+                          <div className="mb-6">
+                            <div className="flex items-center justify-between mb-3">
+                              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Live Route Map</p>
+                              <div className="flex items-center text-xs text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
+                                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse mr-1.5"></div>
+                                LIVE NAVIGATION
+                              </div>
+                            </div>
+                            <MapWithDirections
+                              pickupCoords={ride.pickupLocation.coordinates}
+                              destinationCoords={ride.destinationLocation.coordinates}
+                              driverLocation={ride.driverLocation || ride.currentDriverLocation}
+                              className="h-80 w-full rounded-2xl shadow-inner border border-gray-100"
+                            />
+                            <p className="text-[10px] text-gray-400 mt-2 text-center">
+                              Blue line shows route • Blue dot shows your current location
+                            </p>
+                          </div>
+                        )}
 
                         {/* Trip Actions */}
                         <div className="flex flex-wrap gap-4">
