@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -19,7 +19,8 @@ import {
   Settings,
   BarChart3,
   Calendar,
-  MessageSquare
+  MessageSquare,
+  Camera,
 } from 'lucide-react';
 import { 
   getDriverProfile, 
@@ -35,9 +36,10 @@ import { cancelBooking } from '../services/bookingService';
 import { getUserReviews } from '../services/reviewService';
 import MapWithDirections from '../components/MapWithDirections';
 import { useGoogleMaps } from '../context/GoogleMapsContext';
+import api from '../services/api';
 
 const DriverDashboard = () => {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { socket, isConnected } = useSocket();
   const { isLoaded: mapsLoaded } = useGoogleMaps();
   const navigate = useNavigate();
@@ -57,6 +59,12 @@ const DriverDashboard = () => {
   const [driverReviews, setDriverReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [reviewsError, setReviewsError] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [selectedImageFile, setSelectedImageFile] = useState(null);
+  const [localPreviewUrl, setLocalPreviewUrl] = useState('');
+  const [imageUploadError, setImageUploadError] = useState('');
+  const [imageUploadSuccess, setImageUploadSuccess] = useState('');
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (user?.role !== 'driver') {
@@ -94,6 +102,81 @@ const DriverDashboard = () => {
       fetchDriverReviews();
     }
   }, [activeTab, driverProfile]);
+
+  useEffect(() => {
+    return () => {
+      if (localPreviewUrl && localPreviewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(localPreviewUrl);
+      }
+    };
+  }, [localPreviewUrl]);
+
+  const handleProfileImageSelection = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const maxSize = 1 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setImageUploadError('Image must be 1MB or smaller');
+      setImageUploadSuccess('');
+      event.target.value = '';
+      return;
+    }
+
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setImageUploadError('Only JPEG, PNG, GIF, and WebP images are allowed');
+      setImageUploadSuccess('');
+      event.target.value = '';
+      return;
+    }
+
+    if (localPreviewUrl && localPreviewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(localPreviewUrl);
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+    setLocalPreviewUrl(previewUrl);
+    setSelectedImageFile(file);
+    setImageUploadError('');
+    setImageUploadSuccess('');
+    event.target.value = '';
+  };
+
+  const handleSaveProfileImage = async () => {
+    if (!selectedImageFile) return;
+
+    setUploadingImage(true);
+    setImageUploadError('');
+    setImageUploadSuccess('');
+
+    try {
+      const formData = new FormData();
+      formData.append('image', selectedImageFile);
+
+      const response = await api.post('/upload/profile-picture', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      await refreshUser();
+      await fetchDriverData();
+
+      const uploadedAvatarUrl = response.data?.data?.avatarUrl;
+      if (uploadedAvatarUrl) {
+        if (localPreviewUrl && localPreviewUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(localPreviewUrl);
+        }
+        setLocalPreviewUrl(uploadedAvatarUrl);
+      }
+
+      setSelectedImageFile(null);
+      setImageUploadSuccess('Profile picture saved successfully');
+    } catch (error) {
+      setImageUploadError(error.response?.data?.message || 'Failed to upload profile picture');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const fetchDriverData = async () => {
     try {
@@ -301,7 +384,7 @@ const DriverDashboard = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
-        <div className="flex items-center justify-center py-16">
+        <div className="flex items-center justify-center py-16 pt-28 min-h-[calc(100vh-5rem)]">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
           <span className="ml-3 text-gray-600">Loading dashboard...</span>
         </div>
@@ -314,7 +397,7 @@ const DriverDashboard = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
-        <div className="flex items-center justify-center py-16">
+        <div className="flex items-center justify-center py-16 pt-28 min-h-[calc(100vh-5rem)]">
           <AlertCircle className="h-12 w-12 text-red-500 mr-4" />
           <span className="text-red-600">{error}</span>
         </div>
@@ -337,7 +420,7 @@ const DriverDashboard = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
@@ -755,7 +838,7 @@ const DriverDashboard = () => {
                             <p className="text-sm font-bold text-gray-900">{ride.user?.name}</p>
                             <p className="text-sm text-indigo-600 mt-1">{ride.user?.phoneNumber || 'N/A'}</p>
                             <div className="mt-4 pt-4 border-t border-gray-100">
-                              <p className="text-sm font-bold text-green-600 text-xl">GMD {ride.price?.amount || '0'}</p>
+                              <p className="text-xl font-bold text-green-600">GMD {ride.price?.amount || '0'}</p>
                             </div>
                           </div>
                         </div>
@@ -1065,6 +1148,59 @@ const DriverDashboard = () => {
 
               {driverProfile && (
                 <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4 pb-4 border-b">
+                    <div className="relative w-24 h-24">
+                      <div className="w-24 h-24 rounded-2xl bg-indigo-100 text-indigo-600 font-bold text-3xl flex items-center justify-center overflow-hidden">
+                        {(localPreviewUrl || user?.avatarUrl || driverProfile?.user?.avatarUrl) ? (
+                          <img
+                            src={localPreviewUrl || user?.avatarUrl || driverProfile?.user?.avatarUrl}
+                            alt={`${user?.name || 'Driver'} avatar`}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          user?.name?.[0]?.toUpperCase() || 'D'
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="absolute -bottom-1 -right-1 w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-lg hover:bg-indigo-700 transition-colors"
+                        title="Choose profile photo"
+                        disabled={uploadingImage}
+                      >
+                        <Camera className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex flex-wrap gap-3">
+                        <button
+                          type="button"
+                          onClick={handleSaveProfileImage}
+                          disabled={!selectedImageFile || uploadingImage}
+                          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                          {uploadingImage ? 'Saving...' : 'Save Photo'}
+                        </button>
+                      </div>
+                      {selectedImageFile && (
+                        <p className="text-xs text-gray-500 mt-2">{selectedImageFile.name}</p>
+                      )}
+                      {imageUploadSuccess && (
+                        <p className="text-sm text-green-600 mt-2 font-medium">{imageUploadSuccess}</p>
+                      )}
+                      {imageUploadError && (
+                        <p className="text-sm text-red-600 mt-2 font-medium">{imageUploadError}</p>
+                      )}
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                        className="hidden"
+                        onChange={handleProfileImageSelection}
+                      />
+                    </div>
+                  </div>
+
                   {/* Personal Information */}
                   <div>
                     <h4 className="text-md font-medium text-gray-900 mb-3">Personal Information</h4>
