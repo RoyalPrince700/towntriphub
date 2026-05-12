@@ -1,11 +1,27 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Settings, User, Mail, Shield, Calendar, Bell, ShieldCheck, ArrowRight, Camera, Phone, Edit } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import PhoneNumberModal from '../../components/PhoneNumberModal';
+import api from '../../services/api';
 
 const Profile = ({ user }) => {
-  const { updateProfile } = useAuth();
+  const { user: authUser, updateProfile, refreshUser } = useAuth();
   const [showPhoneModal, setShowPhoneModal] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imageUploadError, setImageUploadError] = useState('');
+  const [imageUploadSuccess, setImageUploadSuccess] = useState('');
+  const [selectedImageFile, setSelectedImageFile] = useState(null);
+  const [localPreviewUrl, setLocalPreviewUrl] = useState('');
+  const fileInputRef = useRef(null);
+  const currentUser = authUser || user;
+
+  useEffect(() => {
+    return () => {
+      if (localPreviewUrl) {
+        URL.revokeObjectURL(localPreviewUrl);
+      }
+    };
+  }, [localPreviewUrl]);
 
   const handleSavePhone = async (phoneNumber) => {
     try {
@@ -13,6 +29,79 @@ const Profile = ({ user }) => {
       // Phone number is now saved and user data is refreshed automatically
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Failed to save phone number');
+    }
+  };
+
+  const handleProfileImageClick = () => {
+    if (uploadingImage) return;
+    fileInputRef.current?.click();
+  };
+
+  const handleProfileImageChange = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const maxSize = 1 * 1024 * 1024; // 1MB
+    if (file.size > maxSize) {
+      setImageUploadError('Image must be 1MB or smaller');
+      setImageUploadSuccess('');
+      event.target.value = '';
+      return;
+    }
+
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setImageUploadError('Only JPEG, PNG, GIF, and WebP images are allowed');
+      setImageUploadSuccess('');
+      event.target.value = '';
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+    if (localPreviewUrl) {
+      URL.revokeObjectURL(localPreviewUrl);
+    }
+    setLocalPreviewUrl(previewUrl);
+
+    setSelectedImageFile(file);
+    setImageUploadSuccess('');
+    setImageUploadError('');
+    event.target.value = '';
+  };
+
+  const handleSaveProfileImage = async () => {
+    if (!selectedImageFile) return;
+
+    setUploadingImage(true);
+    setImageUploadError('');
+    setImageUploadSuccess('');
+
+    try {
+      const formData = new FormData();
+      formData.append('image', selectedImageFile);
+
+      const response = await api.post('/upload/profile-picture', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      await refreshUser();
+      const uploadedAvatarUrl = response.data?.data?.avatarUrl;
+      if (uploadedAvatarUrl) {
+        if (localPreviewUrl) {
+          URL.revokeObjectURL(localPreviewUrl);
+        }
+        setLocalPreviewUrl(uploadedAvatarUrl);
+      }
+      setSelectedImageFile(null);
+      setImageUploadSuccess('Profile picture updated successfully');
+    } catch (error) {
+      if (localPreviewUrl) {
+        URL.revokeObjectURL(localPreviewUrl);
+      }
+      setLocalPreviewUrl('');
+      setImageUploadError(error.response?.data?.message || 'Failed to upload profile picture');
+    } finally {
+      setUploadingImage(false);
     }
   };
 
@@ -24,26 +113,47 @@ const Profile = ({ user }) => {
         
         <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-10">
           <div className="relative group">
-            <div className="w-32 h-32 md:w-40 md:h-40 rounded-[2.5rem] bg-purple-100 flex items-center justify-center text-purple-600 text-5xl font-black shadow-xl border-4 border-white">
-              {user?.name?.[0].toUpperCase() || <User size={64} />}
+            <div className="w-32 h-32 md:w-40 md:h-40 rounded-[2.5rem] bg-purple-100 flex items-center justify-center text-purple-600 text-5xl font-black shadow-xl border-4 border-white overflow-hidden">
+              {(localPreviewUrl || currentUser?.avatarUrl) ? (
+                <img
+                  src={localPreviewUrl || currentUser?.avatarUrl}
+                  alt={`${currentUser?.name || 'User'} profile`}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                currentUser?.name?.[0].toUpperCase() || <User size={64} />
+              )}
             </div>
-            <button className="absolute bottom-2 right-2 w-10 h-10 bg-purple-600 text-white rounded-xl flex items-center justify-center shadow-lg hover:bg-purple-700 transition-all">
+            <button
+              type="button"
+              onClick={handleProfileImageClick}
+              disabled={uploadingImage}
+              className="absolute bottom-2 right-2 w-10 h-10 bg-purple-600 text-white rounded-xl flex items-center justify-center shadow-lg hover:bg-purple-700 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+              title="Upload profile picture"
+            >
               <Camera size={18} />
             </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+              className="hidden"
+              onChange={handleProfileImageChange}
+            />
           </div>
 
           <div className="flex-1 text-center md:text-left space-y-4">
             <div>
               <div className="flex flex-col md:flex-row items-center gap-3">
-                <h2 className="text-4xl font-black text-gray-900 tracking-tight">{user?.name || 'Your Name'}</h2>
+                <h2 className="text-4xl font-black text-gray-900 tracking-tight">{currentUser?.name || 'Your Name'}</h2>
                 <div className="flex items-center px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg border border-emerald-100 text-[10px] font-black uppercase tracking-widest">
                   <ShieldCheck size={12} className="mr-1.5" />
-                  Verified {user?.role}
+                  Verified {currentUser?.role}
                 </div>
               </div>
               <p className="text-gray-400 font-bold uppercase tracking-[0.2em] text-xs mt-2 flex items-center justify-center md:justify-start">
                 <Mail size={14} className="mr-2" />
-                {user?.email}
+                {currentUser?.email}
               </p>
             </div>
 
@@ -55,6 +165,27 @@ const Profile = ({ user }) => {
                 Security
               </button>
             </div>
+            {uploadingImage && (
+              <p className="text-xs font-semibold text-purple-600 uppercase tracking-wider">Uploading image...</p>
+            )}
+            {selectedImageFile && !uploadingImage && (
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleSaveProfileImage}
+                  className="px-5 py-2 bg-purple-600 text-white rounded-xl font-black text-xs uppercase tracking-wider hover:bg-purple-700 transition-all"
+                >
+                  Save Photo
+                </button>
+                <span className="text-[11px] text-gray-500 font-medium truncate max-w-[200px]">{selectedImageFile.name}</span>
+              </div>
+            )}
+            {imageUploadSuccess && (
+              <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wider">{imageUploadSuccess}</p>
+            )}
+            {imageUploadError && (
+              <p className="text-xs font-semibold text-red-500 uppercase tracking-wider">{imageUploadError}</p>
+            )}
           </div>
         </div>
       </div>
@@ -70,10 +201,10 @@ const Profile = ({ user }) => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
               {[
-                { label: 'Full Name', value: user?.name, icon: User },
-                { label: 'Email Address', value: user?.email, icon: Mail },
-                { label: 'Phone Number', value: user?.phone, icon: Phone },
-                { label: 'Account Type', value: user?.role, icon: Shield, capitalize: true },
+                { label: 'Full Name', value: currentUser?.name, icon: User },
+                { label: 'Email Address', value: currentUser?.email, icon: Mail },
+                { label: 'Phone Number', value: currentUser?.phone, icon: Phone },
+                { label: 'Account Type', value: currentUser?.role, icon: Shield, capitalize: true },
                 { label: 'Member Since', value: 'January 2024', icon: Calendar },
               ].map((field, i) => (
                 <div key={i} className="space-y-2">
@@ -134,7 +265,7 @@ const Profile = ({ user }) => {
         isOpen={showPhoneModal}
         onClose={() => setShowPhoneModal(false)}
         onSave={handleSavePhone}
-        currentPhone={user?.phone || ''}
+        currentPhone={currentUser?.phone || ''}
       />
     </div>
   );

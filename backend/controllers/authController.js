@@ -63,7 +63,18 @@ const login = asyncHandler(async (req, res) => {
   if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
 
   const token = signToken({ id: user._id, name: user.name, email: user.email, role: user.role, isEmailVerified: user.isEmailVerified, avatarUrl: user.avatarUrl });
-  res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role, isEmailVerified: user.isEmailVerified } });
+  res.json({
+    token,
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      isEmailVerified: user.isEmailVerified,
+      avatarUrl: user.avatarUrl,
+      phone: user.phoneNumber,
+    },
+  });
 });
 
 const logout = asyncHandler(async (_req, res) => {
@@ -85,7 +96,17 @@ const verifyEmail = asyncHandler(async (req, res) => {
 const getProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user.id).select('-password');
   if (!user) return res.status(404).json({ message: 'User not found' });
-  res.json({ user: { id: user._id, name: user.name, email: user.email, role: user.role, isEmailVerified: user.isEmailVerified, phone: user.phoneNumber } });
+  res.json({
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      isEmailVerified: user.isEmailVerified,
+      phone: user.phoneNumber,
+      avatarUrl: user.avatarUrl,
+    },
+  });
 });
 
 const updateProfile = asyncHandler(async (req, res) => {
@@ -128,8 +149,9 @@ const updateProfile = asyncHandler(async (req, res) => {
       email: user.email,
       role: user.role,
       isEmailVerified: user.isEmailVerified,
-      phone: user.phoneNumber
-    }
+      phone: user.phoneNumber,
+      avatarUrl: user.avatarUrl,
+    },
   });
 });
 

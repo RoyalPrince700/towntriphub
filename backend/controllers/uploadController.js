@@ -34,11 +34,11 @@ const uploadProfilePicture = asyncHandler(async (req, res) => {
     });
   }
 
-  // Validate file size (max 5MB)
-  const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+  // Validate file size (max 1MB)
+  const maxSize = 1 * 1024 * 1024; // 1MB in bytes
   if (file.size > maxSize) {
     return res.status(400).json({
-      message: 'File too large. Maximum size is 5MB',
+      message: 'File too large. Maximum size is 1MB',
     });
   }
 

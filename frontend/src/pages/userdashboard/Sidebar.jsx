@@ -204,8 +204,16 @@ const Sidebar = ({
         {(!isCollapsed || isMobile) && (
           <div className="p-4 mt-auto border-t border-gray-50">
             <div className="bg-gray-50 rounded-2xl p-4 flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-purple-600 font-bold">
-                {user?.email ? user.email[0].toUpperCase() : (user?.name?.[0].toUpperCase() || <User size={20} />)}
+              <div className="w-10 h-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-purple-600 font-bold overflow-hidden">
+                {user?.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={`${user?.name || 'User'} avatar`}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  user?.email ? user.email[0].toUpperCase() : (user?.name?.[0].toUpperCase() || <User size={20} />)
+                )}
               </div>
               <div className="flex-1 overflow-hidden">
                 <p className="text-sm font-bold text-gray-900 truncate">

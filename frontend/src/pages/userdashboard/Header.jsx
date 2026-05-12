@@ -101,8 +101,16 @@ const Header = ({ user, logout, onMenuClick }) => {
                   {user?.email ? user.email.split('@')[0] : (user?.role || 'Rider')}
                 </p>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600 font-bold shadow-sm">
-                {user?.email ? user.email[0].toUpperCase() : (user?.name ? user.name[0].toUpperCase() : <User size={20} />)}
+              <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600 font-bold shadow-sm overflow-hidden">
+                {user?.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={`${user?.name || 'User'} avatar`}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  user?.email ? user.email[0].toUpperCase() : (user?.name ? user.name[0].toUpperCase() : <User size={20} />)
+                )}
               </div>
               
               <button
