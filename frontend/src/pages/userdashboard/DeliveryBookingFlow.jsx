@@ -1,29 +1,31 @@
 import React, { useState } from 'react';
-import { MapPin, Package, Scale, Clock, CreditCard, Check, Truck, ArrowRight, XCircle, ChevronRight, DollarSign } from 'lucide-react';
+import { MapPin, Package, Scale, Check, Truck, ArrowRight, XCircle, DollarSign } from 'lucide-react';
 import { createDeliveryBooking } from '../../services/bookingService';
 import { useAuth } from '../../context/AuthContext';
 import PhoneNumberModal from '../../components/PhoneNumberModal';
+import LocationAutocomplete from '../../components/LocationAutocomplete';
 
 const DeliveryBookingFlow = ({ user }) => {
   const { updateProfile } = useAuth();
+  const initPickup = () => ({
+    address: '',
+    coordinates: { latitude: null, longitude: null }
+  });
+  const initDestination = () => ({
+    address: '',
+    coordinates: { latitude: null, longitude: null }
+  });
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [pickupLocation, setPickupLocation] = useState('');
-  const [deliveryLocation, setDeliveryLocation] = useState('');
+  const [pickupLocation, setPickupLocation] = useState(initPickup);
+  const [deliveryLocation, setDeliveryLocation] = useState(initDestination);
   const [packageDescription, setPackageDescription] = useState('');
   const [packageWeight, setPackageWeight] = useState('');
   const [packageValue, setPackageValue] = useState('');
   const [recipientName, setRecipientName] = useState('');
   const [recipientPhone, setRecipientPhone] = useState('');
-  const [deliveryType, setDeliveryType] = useState('standard');
   const [showPhoneModal, setShowPhoneModal] = useState(false);
-
-  const deliveryOptions = [
-    { id: 'standard', name: 'Standard', time: 'Same day', price: 'GMD 75', icon: <Package size={20} />, color: 'indigo' },
-    { id: 'express', name: 'Express', time: '2-4 hours', price: 'GMD 150', icon: <Truck size={20} />, color: 'emerald' },
-    { id: 'scheduled', name: 'Scheduled', time: 'Choose time', price: 'GMD 100', icon: <Clock size={20} />, color: 'amber' },
-  ];
 
   const handleSavePhone = async (phoneNumber) => {
     try {
@@ -41,12 +43,15 @@ const DeliveryBookingFlow = ({ user }) => {
       return;
     }
 
-    if (!pickupLocation.trim() || !deliveryLocation.trim() || !packageDescription.trim()) {
-      setError('Please fill in all required fields');
+    const isValidPickup = pickupLocation.address?.trim() && pickupLocation.coordinates?.latitude && pickupLocation.coordinates?.longitude;
+    const isValidDelivery = deliveryLocation.address?.trim() && deliveryLocation.coordinates?.latitude && deliveryLocation.coordinates?.longitude;
+
+    if (!isValidPickup || !isValidDelivery || !packageDescription.trim()) {
+      setError('Please select valid pickup and delivery locations from the autocomplete suggestions and fill in package info');
       return;
     }
 
-    if (pickupLocation.trim() === deliveryLocation.trim()) {
+    if (pickupLocation.address?.trim() === deliveryLocation.address?.trim()) {
       setError('Pickup and delivery locations cannot be the same');
       return;
     }
@@ -79,12 +84,8 @@ const DeliveryBookingFlow = ({ user }) => {
       );
 
       const bookingData = {
-        pickupLocation: {
-          address: pickupLocation.trim(),
-        },
-        destinationLocation: {
-          address: deliveryLocation.trim(),
-        },
+        pickupLocation,
+        destinationLocation: deliveryLocation,
         packageDetails,
       };
 
@@ -107,14 +108,13 @@ const DeliveryBookingFlow = ({ user }) => {
 
   const resetForm = () => {
     setSuccess(false);
-    setPickupLocation('');
-    setDeliveryLocation('');
+    setPickupLocation(initPickup());
+    setDeliveryLocation(initDestination());
     setPackageDescription('');
     setPackageWeight('');
     setPackageValue('');
     setRecipientName('');
     setRecipientPhone('');
-    setDeliveryType('standard');
     setError('');
   };
 
@@ -135,7 +135,7 @@ const DeliveryBookingFlow = ({ user }) => {
               </div>
               <div className="text-left">
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">From</p>
-                <p className="text-sm font-bold text-gray-700 leading-snug">{pickupLocation}</p>
+                <p className="text-sm font-bold text-gray-700 leading-snug">{pickupLocation?.address ?? ''}</p>
               </div>
             </div>
             <div className="flex items-start space-x-4">
@@ -144,7 +144,7 @@ const DeliveryBookingFlow = ({ user }) => {
               </div>
               <div className="text-left">
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">To</p>
-                <p className="text-sm font-bold text-gray-700 leading-snug">{deliveryLocation}</p>
+                <p className="text-sm font-bold text-gray-700 leading-snug">{deliveryLocation?.address ?? ''}</p>
               </div>
             </div>
           </div>
@@ -184,33 +184,21 @@ const DeliveryBookingFlow = ({ user }) => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
           <div className="space-y-6">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Pickup From</label>
-              <div className="relative group">
-                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-emerald-500 transition-colors" size={20} />
-                <input
-                  type="text"
-                  placeholder="Street address or landmark"
-                  value={pickupLocation}
-                  onChange={(e) => setPickupLocation(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-[1.25rem] focus:bg-white focus:ring-4 focus:ring-emerald-50 focus:border-emerald-200 transition-all text-sm font-bold"
-                />
-              </div>
-            </div>
+            <LocationAutocomplete
+              label="Pickup Location"
+              placeholder="Where should we pick up the package?"
+              value={pickupLocation}
+              onChange={(location) => setPickupLocation(location)}
+              required
+            />
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Deliver To</label>
-              <div className="relative group">
-                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-purple-600 transition-colors" size={20} />
-                <input
-                  type="text"
-                  placeholder="Recipient's address"
-                  value={deliveryLocation}
-                  onChange={(e) => setDeliveryLocation(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-[1.25rem] focus:bg-white focus:ring-4 focus:ring-purple-50 focus:border-purple-200 transition-all text-sm font-bold"
-                />
-              </div>
-            </div>
+            <LocationAutocomplete
+              label="Delivery Destination"
+              placeholder="Where should we deliver the package?"
+              value={deliveryLocation}
+              onChange={(location) => setDeliveryLocation(location)}
+              required
+            />
           </div>
 
           <div className="space-y-6">
@@ -230,12 +218,12 @@ const DeliveryBookingFlow = ({ user }) => {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Weight (kg)</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Weight (kg) - Optional</label>
                 <div className="relative group">
                   <Scale className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                   <input
                     type="number"
-                    placeholder="0.0"
+                    placeholder="Optional"
                     value={packageWeight}
                     onChange={(e) => setPackageWeight(e.target.value)}
                     className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-[1.25rem] focus:bg-white transition-all text-sm font-bold"
@@ -259,37 +247,34 @@ const DeliveryBookingFlow = ({ user }) => {
           </div>
         </div>
 
-        <div className="mb-10">
-          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-4 block">Delivery Speed</label>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {deliveryOptions.map((option) => (
-              <button
-                key={option.id}
-                onClick={() => setDeliveryType(option.id)}
-                className={`flex flex-col p-5 rounded-[1.5rem] border-2 transition-all text-left ${
-                  deliveryType === option.id
-                    ? 'border-emerald-500 bg-emerald-50 shadow-lg shadow-emerald-100'
-                    : 'border-gray-50 bg-gray-50 hover:bg-white hover:border-gray-200'
-                }`}
-              >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 ${
-                  deliveryType === option.id ? 'bg-emerald-500 text-white' : 'bg-white text-gray-400'
-                }`}>
-                  {option.icon}
-                </div>
-                <p className={`text-sm font-black tracking-tight ${deliveryType === option.id ? 'text-emerald-900' : 'text-gray-900'}`}>{option.name}</p>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mt-1">{option.time}</p>
-                <p className="text-sm font-black text-emerald-600 mt-2">{option.price}</p>
-              </button>
-            ))}
+        {(!pickupLocation.coordinates?.latitude || !deliveryLocation.coordinates?.latitude) && (
+          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl text-sm">
+            <div className="flex items-start gap-3">
+              <div className="w-5 h-5 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 text-base">!</div>
+              <div>
+                <p className="font-bold text-amber-800 mb-1">Location Selection Required</p>
+                <p className="text-amber-700 text-xs leading-relaxed">
+                  You must select addresses from the dropdown suggestions so we can capture coordinates for logistics routing.
+                </p>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
 
         <button
           onClick={handleBooking}
-          disabled={!pickupLocation || !deliveryLocation || !packageDescription || loading}
+          disabled={loading || !packageDescription?.trim() ||
+                   !pickupLocation.address?.trim() || !pickupLocation.coordinates?.latitude || !pickupLocation.coordinates?.longitude ||
+                   !deliveryLocation.address?.trim() || !deliveryLocation.coordinates?.latitude || !deliveryLocation.coordinates?.longitude}
           className={`w-full py-5 rounded-[1.5rem] font-black text-sm uppercase tracking-widest transition-all flex items-center justify-center space-x-3 ${
-            pickupLocation && deliveryLocation && packageDescription && !loading
+            !loading &&
+            packageDescription?.trim() &&
+            pickupLocation.address?.trim() &&
+            pickupLocation.coordinates?.latitude &&
+            pickupLocation.coordinates?.longitude &&
+            deliveryLocation.address?.trim() &&
+            deliveryLocation.coordinates?.latitude &&
+            deliveryLocation.coordinates?.longitude
               ? 'bg-emerald-600 text-white shadow-xl shadow-emerald-100 hover:bg-emerald-700 hover:scale-[1.02] active:scale-[0.98]'
               : 'bg-gray-100 text-gray-400 cursor-not-allowed'
           }`}
