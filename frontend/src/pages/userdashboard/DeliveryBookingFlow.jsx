@@ -43,11 +43,8 @@ const DeliveryBookingFlow = ({ user }) => {
       return;
     }
 
-    const isValidPickup = pickupLocation.address?.trim() && pickupLocation.coordinates?.latitude && pickupLocation.coordinates?.longitude;
-    const isValidDelivery = deliveryLocation.address?.trim() && deliveryLocation.coordinates?.latitude && deliveryLocation.coordinates?.longitude;
-
-    if (!isValidPickup || !isValidDelivery || !packageDescription.trim()) {
-      setError('Please select valid pickup and delivery locations from the autocomplete suggestions and fill in package info');
+    if (!pickupLocation.address?.trim() || !deliveryLocation.address?.trim() || !packageDescription.trim()) {
+      setError('Please enter pickup and delivery addresses and fill in package info');
       return;
     }
 
@@ -247,34 +244,15 @@ const DeliveryBookingFlow = ({ user }) => {
           </div>
         </div>
 
-        {(!pickupLocation.coordinates?.latitude || !deliveryLocation.coordinates?.latitude) && (
-          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl text-sm">
-            <div className="flex items-start gap-3">
-              <div className="w-5 h-5 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 text-base">!</div>
-              <div>
-                <p className="font-bold text-amber-800 mb-1">Location Selection Required</p>
-                <p className="text-amber-700 text-xs leading-relaxed">
-                  You must select addresses from the dropdown suggestions so we can capture coordinates for logistics routing.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
         <button
           onClick={handleBooking}
           disabled={loading || !packageDescription?.trim() ||
-                   !pickupLocation.address?.trim() || !pickupLocation.coordinates?.latitude || !pickupLocation.coordinates?.longitude ||
-                   !deliveryLocation.address?.trim() || !deliveryLocation.coordinates?.latitude || !deliveryLocation.coordinates?.longitude}
+                   !pickupLocation.address?.trim() || !deliveryLocation.address?.trim()}
           className={`w-full py-5 rounded-[1.5rem] font-black text-sm uppercase tracking-widest transition-all flex items-center justify-center space-x-3 ${
             !loading &&
             packageDescription?.trim() &&
             pickupLocation.address?.trim() &&
-            pickupLocation.coordinates?.latitude &&
-            pickupLocation.coordinates?.longitude &&
-            deliveryLocation.address?.trim() &&
-            deliveryLocation.coordinates?.latitude &&
-            deliveryLocation.coordinates?.longitude
+            deliveryLocation.address?.trim()
               ? 'bg-emerald-600 text-white shadow-xl shadow-emerald-100 hover:bg-emerald-700 hover:scale-[1.02] active:scale-[0.98]'
               : 'bg-gray-100 text-gray-400 cursor-not-allowed'
           }`}

@@ -55,12 +55,12 @@ const RideBookingForm = ({ onSubmit, loading }) => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.pickupLocation.address || !formData.pickupLocation.coordinates?.latitude || !formData.pickupLocation.coordinates?.longitude) {
-      newErrors.pickupLocation = 'Please select a valid pickup location from the suggestions';
+    if (!formData.pickupLocation.address?.trim()) {
+      newErrors.pickupLocation = 'Please enter a pickup address';
     }
 
-    if (!formData.destinationLocation.address || !formData.destinationLocation.coordinates?.latitude || !formData.destinationLocation.coordinates?.longitude) {
-      newErrors.destinationLocation = 'Please select a valid destination from the suggestions';
+    if (!formData.destinationLocation.address?.trim()) {
+      newErrors.destinationLocation = 'Please enter a destination address';
     }
 
     if (formData.pickupLocation.address === formData.destinationLocation.address &&

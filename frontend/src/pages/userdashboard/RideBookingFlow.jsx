@@ -78,11 +78,8 @@ const RideBookingFlow = ({ user, prefilledPickup = '', prefilledDestination = ''
       return;
     }
 
-    const isValidPickup = pickupLocation.address?.trim() && pickupLocation.coordinates?.latitude && pickupLocation.coordinates?.longitude;
-    const isValidDestination = destinationLocation.address?.trim() && destinationLocation.coordinates?.latitude && destinationLocation.coordinates?.longitude;
-
-    if (!isValidPickup || !isValidDestination) {
-      setError('Please select both pickup and destination locations from the autocomplete suggestions (coordinates are required for routing and fare calculation)');
+    if (!pickupLocation.address?.trim() || !destinationLocation.address?.trim()) {
+      setError('Please enter both pickup and destination addresses');
       return;
     }
 
@@ -195,7 +192,7 @@ const RideBookingFlow = ({ user, prefilledPickup = '', prefilledDestination = ''
                     required
                   />
                 </div>
-                {pickupLocation.address?.trim() && pickupLocation.coordinates?.latitude && pickupLocation.coordinates?.longitude && (
+                {pickupLocation.address?.trim() && (
                   <button
                     onClick={() => setShowSavePickupDialog(true)}
                     className="pb-3 text-gray-400 hover:text-emerald-500 transition-colors shrink-0"
@@ -218,7 +215,7 @@ const RideBookingFlow = ({ user, prefilledPickup = '', prefilledDestination = ''
                     required
                   />
                 </div>
-                {destinationLocation.address?.trim() && destinationLocation.coordinates?.latitude && destinationLocation.coordinates?.longitude && (
+                {destinationLocation.address?.trim() && (
                   <button
                     onClick={() => setShowSaveDestinationDialog(true)}
                     className="pb-3 text-gray-400 hover:text-purple-600 transition-colors shrink-0"
@@ -262,40 +259,13 @@ const RideBookingFlow = ({ user, prefilledPickup = '', prefilledDestination = ''
           </div>
         </div>
 
-        {/* Validation Status */}
-        {(!pickupLocation.coordinates?.latitude || !destinationLocation.coordinates?.latitude) && (
-          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl text-sm">
-            <div className="flex items-start gap-3">
-              <div className="w-5 h-5 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 text-base">!</div>
-              <div>
-                <p className="font-bold text-amber-800 mb-1">Location Selection Required</p>
-                <p className="text-amber-700 text-xs leading-relaxed">
-                  You must select addresses from the dropdown suggestions. This ensures we have accurate coordinates for:
-                </p>
-                <ul className="text-[10px] text-amber-600 mt-2 space-y-1 list-disc pl-4">
-                  <li>Calculating exact fare</li>
-                  <li>Showing route on map</li>
-                  <li>Matching with nearby drivers</li>
-                </ul>
-                <p className="text-[10px] text-amber-500 mt-3">Typing alone is not enough — click a suggestion to confirm.</p>
-              </div>
-            </div>
-          </div>
-        )}
-
         <button
           onClick={handleBooking}
-          disabled={loading || !pickupLocation.address?.trim() || !destinationLocation.address?.trim() ||
-                   !pickupLocation.coordinates?.latitude || !pickupLocation.coordinates?.longitude ||
-                   !destinationLocation.coordinates?.latitude || !destinationLocation.coordinates?.longitude}
+          disabled={loading || !pickupLocation.address?.trim() || !destinationLocation.address?.trim()}
           className={`w-full py-5 rounded-[1.5rem] font-black text-sm uppercase tracking-widest transition-all flex items-center justify-center space-x-3 ${
             !loading &&
             pickupLocation.address?.trim() &&
-            destinationLocation.address?.trim() &&
-            pickupLocation.coordinates?.latitude &&
-            pickupLocation.coordinates?.longitude &&
-            destinationLocation.coordinates?.latitude &&
-            destinationLocation.coordinates?.longitude
+            destinationLocation.address?.trim()
               ? 'bg-purple-600 text-white shadow-xl shadow-purple-100 hover:bg-purple-700 hover:scale-[1.02] active:scale-[0.98]'
               : 'bg-gray-100 text-gray-400 cursor-not-allowed'
           }`}
